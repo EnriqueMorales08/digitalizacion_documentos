@@ -20,6 +20,12 @@ class Document {
                 'OC_VEHICULO_ANIO_MODELO' => 10,
                 // Agregar otros si es necesario
             ];
+            // Campos que son DECIMAL y necesitan limpieza numérica
+            $decimalFields = [
+                'OC_PRECIO_VENTA', 'OC_BONO_FINANCIAMIENTO', 'OC_TOTAL_EQUIPAMIENTO',
+                'OC_PRECIO_TOTAL_COMPRA', 'OC_TIPO_CAMBIO', 'OC_TIPO_CAMBIO_SOL',
+                'OC_PAGO_CUENTA', 'OC_SALDO_PENDIENTE'
+            ];
             foreach ($data as $key => $value) {
                 if (strpos($key, 'OC_') === 0) {
                     $fields[] = $key;
@@ -28,14 +34,26 @@ class Document {
                     if ($val && isset($maxLengths[$key])) {
                         $val = substr($val, 0, $maxLengths[$key]);
                     }
-                    // Limpiar símbolos de moneda y convertir a numérico si es posible
-                    if ($val) {
+                    // Limpiar y validar solo campos DECIMAL
+                    if ($val && in_array($key, $decimalFields)) {
                         // Quitar símbolos comunes de moneda y espacios
                         $cleanVal = preg_replace('/[$ ,USMNusmn]+/', '', $val);
                         if (is_numeric($cleanVal)) {
-                            $val = (float)$cleanVal; // Siempre float para DECIMAL
+                            $num = (float)$cleanVal;
+                            // Verificar overflow para DECIMAL(12,2)
+                            if ($num > 9999999999.99) {
+                                $val = null; // O truncar, pero null para evitar error
+                            } else {
+                                $val = $cleanVal;
+                            }
+                        } else {
+                            // Si no es numérico, setear a null para evitar errores de conversión
+                            $val = null;
                         }
-                        // Si no es numérico, dejar el valor original (para campos de texto)
+                    }
+                    // Para otros campos (NVARCHAR), dejar el valor como está
+                    if (!is_scalar($val) && !is_null($val)) {
+                        $val = null;
                     }
                     $values[] = $val;
                 }
@@ -46,17 +64,27 @@ class Document {
             }
 
             $sql = "INSERT INTO SIST_ORDEN_COMPRA (" . implode(", ", $fields) . ") VALUES (" . implode(", ", $placeholders) . ")";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute($values);
+            $result = sqlsrv_query($this->conn, $sql, $values);
+            if (!$result) {
+                throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+            }
 
             // Obtener ID
-            $id = $this->conn->query("SELECT SCOPE_IDENTITY() AS id")->fetch(PDO::FETCH_ASSOC)['id'];
+            $result = sqlsrv_query($this->conn, "SELECT SCOPE_IDENTITY() AS id");
+            if (!$result) {
+                throw new Exception("Error getting ID: " . print_r(sqlsrv_errors(), true));
+            }
+            $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+            if (!$row) {
+                throw new Exception("No ID returned");
+            }
+            $id = $row['id'];
 
             // Precargar datos en otros documentos
             $this->precargarDocumentos($id, $data);
 
             return ['success' => true, 'id' => $id];
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -69,103 +97,66 @@ class Document {
 
         // Acta Conocimiento Conformidad
         $sql = "INSERT INTO SIST_ACTA_CONOCIMIENTO_CONFORMIDAD (ACC_DOCUMENTO_VENTA_ID, ACC_NOMBRE_CLIENTE, ACC_DNI_CLIENTE, ACC_MARCA_VEHICULO, ACC_MODELO_VEHICULO, ACC_ANIO_VEHICULO, ACC_VIN_VEHICULO, ACC_COLOR_VEHICULO) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20),
-            $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10),
-            $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50),
-            $trunc($data['OC_VEHICULO_COLOR'] ?? null, 50)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100), $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10), $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50), $trunc($data['OC_VEHICULO_COLOR'] ?? null, 50)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
 
         // Autorización Datos Personales
         $sql = "INSERT INTO SIST_AUTORIZACION_DATOS_PERSONALES (ADP_DOCUMENTO_VENTA_ID, ADP_NOMBRE_AUTORIZACION, ADP_DNI_AUTORIZACION) VALUES (?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
 
         // Carta Conocimiento Aceptación
         $sql = "INSERT INTO SIST_CARTA_CONOCIMIENTO_ACEPTACION (CCA_DOCUMENTO_VENTA_ID, CCA_CLIENTE_NOMBRE_COMPLETO, CCA_CLIENTE_DOCUMENTO, CCA_VEHICULO_MARCA, CCA_VEHICULO_MODELO, CCA_VEHICULO_ANIO, CCA_VEHICULO_VIN) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 50),
-            $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10),
-            $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 50), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100), $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10), $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
 
         // Carta Recepción
         $sql = "INSERT INTO SIST_CARTA_RECEPCION (CR_DOCUMENTO_VENTA_ID, CR_CLIENTE_NOMBRE, CR_CLIENTE_DNI, CR_VEHICULO_MARCA, CR_VEHICULO_MODELO) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20),
-            $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
 
         // Carta Características
         $sql = "INSERT INTO SIST_CARTA_CARACTERISTICAS (CC_DOCUMENTO_VENTA_ID, CC_CLIENTE_NOMBRE, CC_CLIENTE_DNI, CC_VEHICULO_MARCA, CC_VEHICULO_MODELO, CC_VEHICULO_ANIO_MODELO, CC_VEHICULO_CHASIS, CC_VEHICULO_MOTOR, CC_VEHICULO_COLOR, CC_PROPIETARIO_TARJETA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20),
-            $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10),
-            $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50),
-            $trunc($data['OC_VEHICULO_MOTOR'] ?? null, 50),
-            $trunc($data['OC_VEHICULO_COLOR'] ?? null, 50),
-            $trunc($data['OC_PROPIETARIO_NOMBRE'] ?? null, 200)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100), $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10), $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50), $trunc($data['OC_VEHICULO_MOTOR'] ?? null, 50), $trunc($data['OC_VEHICULO_COLOR'] ?? null, 50), $trunc($data['OC_PROPIETARIO_NOMBRE'] ?? null, 200)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
 
         // Carta Felicitaciones
         $sql = "INSERT INTO SIST_CARTA_FELICITACIONES (CF_DOCUMENTO_VENTA_ID, CF_CLIENTE_NOMBRE, CF_VEHICULO_MARCA, CF_ASESOR_NOMBRE) VALUES (?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100),
-            $trunc($data['OC_ASESOR_VENTA'] ?? null, 200)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_ASESOR_VENTA'] ?? null, 200)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
 
         // Carta Obsequios
         $sql = "INSERT INTO SIST_CARTA_OBSEQUIOS (CO_DOCUMENTO_VENTA_ID, CO_CLIENTE_NOMBRE, CO_CLIENTE_DNI, CO_VEHICULO_MARCA, CO_VEHICULO_MODELO) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20),
-            $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100),
-            $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
 
         // Política Protección Datos
         $sql = "INSERT INTO SIST_POLITICA_PROTECCION_DATOS (PPD_DOCUMENTO_VENTA_ID, PPD_CLIENTE_NOMBRE, PPD_CLIENTE_DNI) VALUES (?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            $ordenId,
-            $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200),
-            $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20)
-        ]);
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
     }
 
     public function getOrdenCompra($id) {
         $sql = "SELECT * FROM SIST_ORDEN_COMPRA WHERE OC_ID = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = sqlsrv_prepare($this->conn, $sql);
+        sqlsrv_execute($stmt, [$id]);
+        return sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     }
 
     public function getDocumentData($documentId, $ordenId) {
@@ -187,8 +178,8 @@ class Document {
         $table = $tableMap[$documentId]['table'];
         $field = $tableMap[$documentId]['field'];
         $sql = "SELECT * FROM $table WHERE $field = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([$ordenId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = sqlsrv_prepare($this->conn, $sql);
+        sqlsrv_execute($stmt, [$ordenId]);
+        return sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     }
 }

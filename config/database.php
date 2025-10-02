@@ -11,15 +11,17 @@ class Database {
     public function getConnection() {
         $this->conn = null;
         try {
-            // Usar PDO_SQLSRV para SQL Server
-            $this->conn = new PDO(
-                "sqlsrv:Server=" . $this->host . ";Database=" . $this->db_name,
-                $this->username,
-                $this->password
+            // Usar sqlsrv para SQL Server
+            $connectionInfo = array(
+                "Database" => $this->db_name,
+                "UID" => $this->username,
+                "PWD" => $this->password
             );
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        } catch (PDOException $exception) {
+            $this->conn = sqlsrv_connect($this->host, $connectionInfo);
+            if ($this->conn === false) {
+                throw new Exception("Error de conexión: " . print_r(sqlsrv_errors(), true));
+            }
+        } catch (Exception $exception) {
             die("❌ Error de conexión a la BD: " . $exception->getMessage());
         }
         return $this->conn;

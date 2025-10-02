@@ -406,8 +406,8 @@
                 <div style="display:flex; border-bottom:1px solid #000; align-items:center;">
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Precio de venta</div>
                     <select name="OC_MONEDA_PRECIO_VENTA" style="width:70px; margin-right:5px;">
-                        <option>US$</option>
-                        <option>MN</option>
+                        <option value="US$" selected>US$</option>
+                        <option value="MN">MN</option>
                     </select>
                     <input type="text" name="OC_PRECIO_VENTA" style="flex:1;">
                 </div>
@@ -417,8 +417,8 @@
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:110px;">Bono Financiamiento
                     </div>
                     <select name="OC_MONEDA_BONO_FINANCIAMIENTO" style="width:70px; margin-right:5px;">
-                        <option>US$</option>
-                        <option>MN</option>
+                        <option value="US$" selected>US$</option>
+                        <option value="MN">MN</option>
                     </select>
                     <input type="text" name="OC_BONO_FINANCIAMIENTO" style="flex:1;">
                 </div>
@@ -429,40 +429,40 @@
                     <div style="display:flex; margin-bottom:4px;">
                         <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_1" placeholder="Descripción" style="flex:1; margin-right:5px;">
                         <select name="OC_MONEDA_EQUIPAMIENTO_1" style="width:70px; margin-right:5px;">
-                            <option>US$</option>
-                            <option>MN</option>
+                            <option value="US$" selected>US$</option>
+                            <option value="MN">MN</option>
                         </select>
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_1" style="flex:1;">
                     </div>
                     <div style="display:flex; margin-bottom:4px;">
                         <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_2" placeholder="Descripción" style="flex:1; margin-right:5px;">
                         <select name="OC_MONEDA_EQUIPAMIENTO_2" style="width:70px; margin-right:5px;">
-                            <option>US$</option>
-                            <option>MN</option>
+                            <option value="US$" selected>US$</option>
+                            <option value="MN">MN</option>
                         </select>
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_2" style="flex:1;">
                     </div>
                     <div style="display:flex; margin-bottom:4px;">
                         <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_3" placeholder="Descripción" style="flex:1; margin-right:5px;">
                         <select name="OC_MONEDA_EQUIPAMIENTO_3" style="width:70px; margin-right:5px;">
-                            <option>US$</option>
-                            <option>MN</option>
+                            <option value="US$" selected>US$</option>
+                            <option value="MN">MN</option>
                         </select>
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_3" style="flex:1;">
                     </div>
                     <div style="display:flex; margin-bottom:4px;">
                         <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_4" placeholder="Descripción" style="flex:1; margin-right:5px;">
                         <select name="OC_MONEDA_EQUIPAMIENTO_4" style="width:70px; margin-right:5px;">
-                            <option>US$</option>
-                            <option>MN</option>
+                            <option value="US$" selected>US$</option>
+                            <option value="MN">MN</option>
                         </select>
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_4" style="flex:1;">
                     </div>
                     <div style="display:flex;">
                         <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_5" placeholder="Descripción" style="flex:1; margin-right:5px;">
                         <select name="OC_MONEDA_EQUIPAMIENTO_5" style="width:70px; margin-right:5px;">
-                            <option>US$</option>
-                            <option>MN</option>
+                            <option value="US$" selected>US$</option>
+                            <option value="MN">MN</option>
                         </select>
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_5" style="flex:1;">
                     </div>
@@ -480,8 +480,8 @@
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:130px;">Precio compra total
                     </div>
                     <select name="OC_MONEDA_PRECIO_TOTAL" style="width:70px; margin-right:5px;">
-                        <option>US$</option>
-                        <option>MN</option>
+                        <option value="US$" selected>US$</option>
+                        <option value="MN">MN</option>
                     </select>
                     <input type="text" name="OC_PRECIO_TOTAL_COMPRA" style="flex:1;">
                 </div>
@@ -510,8 +510,8 @@
                 <div style="display:flex;  align-items:center;">
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Pago a cuenta</div>
                     <select name="OC_MONEDA_PAGO_CUENTA" style="width:70px; margin-right:5px;">
-                        <option>US$</option>
-                        <option>MN</option>
+                        <option value="US$" selected>US$</option>
+                        <option value="MN">MN</option>
                     </select>
                     <input type="text" name="OC_PAGO_CUENTA" style="flex:1;border-bottom:1px solid #000;" autocomplete="off">
                 </div>
@@ -543,8 +543,8 @@
                 <div style="display:flex; align-items:center;">
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Saldo (3-4)</div>
                     <select name="OC_MONEDA_SALDO" style="width:70px; margin-right:5px;">
-                        <option>US$</option>
-                        <option>MN</option>
+                        <option value="US$" selected>US$</option>
+                        <option value="MN">MN</option>
                     </select>
                     <input type="text" name="OC_SALDO_PENDIENTE" style="flex:1; border-bottom:1px solid #000" autocomplete="off">
                 </div>
