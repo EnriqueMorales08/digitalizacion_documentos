@@ -763,6 +763,7 @@
                                     document.getElementsByName('OC_VEHICULO_CLASE')[0].value = data.CLASE || '';
                                     document.getElementsByName('OC_VEHICULO_VERSION')[0].value = data.VERSION || '';
                                     document.getElementsByName('OC_VEHICULO_MOTOR')[0].value = data.MOTOR || '';
+                                    document.getElementsByName('OC_VEHICULO_CODIGO_FSC')[0].value = data.FSC || '';
                                 }
                             })
                             .catch(error => console.error('Error:', error));

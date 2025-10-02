@@ -27,4 +27,25 @@ class Database {
         }
         return $this->conn;
     }
+
+    public function getStockConnection() {
+        $stockConn = null;
+        try {
+            $connectionInfo = array(
+                "Database" => "stock",
+                "UID" => "sa",
+                "PWD" => "sistemasi",
+                "CharacterSet" => "UTF-8"
+            );
+            $stockConn = sqlsrv_connect("192.168.10.13", $connectionInfo);
+            if ($stockConn === false) {
+                throw new Exception("Error de conexión a BD Stock: " . print_r(sqlsrv_errors(), true));
+            }
+        } catch (Exception $exception) {
+            // No morir, solo loggear o algo, pero por ahora devolver null
+            error_log("Error conexión stock: " . $exception->getMessage());
+            return null;
+        }
+        return $stockConn;
+    }
 }

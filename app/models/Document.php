@@ -212,6 +212,25 @@ class Document {
         if (!$result) {
             return null;
         }
-        return sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+        $vehiculo = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+
+        // Consultar FSC en BD Stock
+        if ($vehiculo) {
+            $db = new Database();
+            $stockConn = $db->getStockConnection();
+            if ($stockConn) {
+                $sqlStock = "SELECT STO_FSC FROM STOCK WHERE STO_CHASIS = ?";
+                $resultStock = sqlsrv_query($stockConn, $sqlStock, [$chasis]);
+                if ($resultStock) {
+                    $stockData = sqlsrv_fetch_array($resultStock, SQLSRV_FETCH_ASSOC);
+                    if ($stockData) {
+                        $vehiculo['FSC'] = $stockData['STO_FSC'];
+                    }
+                }
+                sqlsrv_close($stockConn);
+            }
+        }
+
+        return $vehiculo;
     }
 }
