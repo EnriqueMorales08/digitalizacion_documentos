@@ -745,6 +745,32 @@
             calcularTipoCambio();
         }
 
+        // Función para autocompletar vehículo por chasis
+        function autocompletarVehiculo() {
+            const chasisInput = document.getElementsByName('OC_VEHICULO_CHASIS')[0];
+            if (chasisInput) {
+                chasisInput.addEventListener('blur', function() {
+                    const chasis = this.value.trim();
+                    if (chasis) {
+                        fetch('/digitalizacion-documentos/documents/buscar-vehiculo?chasis=' + encodeURIComponent(chasis))
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && data.VE_CCHASIS) {
+                                    document.getElementsByName('OC_VEHICULO_MODELO')[0].value = data.MODELO || '';
+                                    document.getElementsByName('OC_VEHICULO_COLOR')[0].value = data.COLOR || '';
+                                    document.getElementsByName('OC_VEHICULO_MARCA')[0].value = data.MARCA || '';
+                                    document.getElementsByName('OC_VEHICULO_ANIO_MODELO')[0].value = data.ANIO_FABRICACION || '';
+                                    document.getElementsByName('OC_VEHICULO_CLASE')[0].value = data.CLASE || '';
+                                    document.getElementsByName('OC_VEHICULO_VERSION')[0].value = data.VERSION || '';
+                                    document.getElementsByName('OC_VEHICULO_MOTOR')[0].value = data.MOTOR || '';
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                    }
+                });
+            }
+        }
+
         // Agregar event listeners
         document.addEventListener('DOMContentLoaded', function() {
             const precioTotalInput = document.getElementsByName('OC_PRECIO_TOTAL_COMPRA')[0];
@@ -782,6 +808,9 @@
 
             // Inicializar autocompletado de fecha
             autocompletarFechaNacimiento();
+
+            // Inicializar autocompletado de vehículo
+            autocompletarVehiculo();
 
             // Inicializar cálculos
             manejarBonoFinanciamiento();

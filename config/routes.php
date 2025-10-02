@@ -28,6 +28,10 @@ if ($uri === '/' || $uri === ''
 } elseif ($method === 'POST' && ($uri === '/documents/procesar-orden-compra' || $uri === '/digitalizacion-documentos/documents/procesar-orden-compra')) {
     $controller->procesarOrdenCompra();
 
+// BUSCAR VEHÍCULO
+} elseif ($method === 'GET' && ($uri === '/documents/buscar-vehiculo' || $uri === '/digitalizacion-documentos/documents/buscar-vehiculo')) {
+    $controller->buscarVehiculo();
+
 // ACTA CONOCIMIENTO CONFORMIDAD
 } elseif ($method === 'POST' && ($uri === '/documents/procesar-acta-conformidad' || $uri === '/digitalizacion-documentos/documents/procesar-acta-conformidad')) {
     $controller->procesarActaConformidad();

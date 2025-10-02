@@ -2,10 +2,10 @@
 
 <?php
 class Database {
-    private $host = "localhost\\SQLEXPRESS";   // instancia SQL Server
-    private $db_name = "documentos_db";
+    private $host = "192.168.10.10";   // instancia SQL Server
+    private $db_name = "FACCARPRUEBA";
     private $username = "sa";      // usuario SQL Server
-    private $password = "Enrique123";  // contraseña SQL Server
+    private $password = "sistemasi";  // contraseña SQL Server
     private $conn;
 
     public function getConnection() {
@@ -15,7 +15,8 @@ class Database {
             $connectionInfo = array(
                 "Database" => $this->db_name,
                 "UID" => $this->username,
-                "PWD" => $this->password
+                "PWD" => $this->password,
+                "CharacterSet" => "UTF-8"
             );
             $this->conn = sqlsrv_connect($this->host, $connectionInfo);
             if ($this->conn === false) {

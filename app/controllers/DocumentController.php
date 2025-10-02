@@ -79,4 +79,15 @@ class DocumentController {
             }
         }
     }
+
+    // Buscar vehículo por chasis
+    public function buscarVehiculo() {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['chasis'])) {
+            $chasis = trim($_GET['chasis']);
+            $vehiculo = $this->documentModel->buscarVehiculoPorChasis($chasis);
+            header('Content-Type: application/json');
+            echo json_encode($vehiculo ?: []);
+            exit;
+        }
+    }
 }

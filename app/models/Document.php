@@ -182,4 +182,36 @@ class Document {
         sqlsrv_execute($stmt, [$ordenId]);
         return sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     }
+
+    public function buscarVehiculoPorChasis($chasis) {
+        $sql = "SELECT TOP 1
+                    V.VE_CCHASIS,
+                    MO.TG_CDESCRI AS MODELO,
+                    CO.TG_CDESCRI AS COLOR,
+                    MA.TG_CDESCRI AS MARCA,
+                    V.VE_CANOFAB AS ANIO_FABRICACION,
+                    CL.TG_CDESCRI AS CLASE,
+                    V.VE_CVERSIO AS VERSION,
+                    V.VE_CNROMOT AS MOTOR
+                FROM FT0002VEHI V
+                LEFT JOIN AL0002TABL CL
+                    ON V.VE_CCLASE = CL.TG_CCLAVE
+                   AND CL.TG_CCOD = 'V9'
+                LEFT JOIN AL0002TABL MA
+                    ON V.VE_CMARCA = MA.TG_CCLAVE
+                   AND MA.TG_CCOD = 'V7'
+                LEFT JOIN AL0002TABL MO
+                    ON V.VE_CMODELO = MO.TG_CCLAVE
+                   AND MO.TG_CCOD = '39'
+                LEFT JOIN AL0002TABL CO
+                    ON V.VE_CCOLOR = CO.TG_CCLAVE
+                   AND CO.TG_CCOD = 'V8'
+                WHERE V.VE_CCHASIS = ?
+                ORDER BY V.VE_CANOFAB DESC";
+        $result = sqlsrv_query($this->conn, $sql, [$chasis]);
+        if (!$result) {
+            return null;
+        }
+        return sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+    }
 }
