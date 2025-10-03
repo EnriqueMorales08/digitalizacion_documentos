@@ -192,7 +192,8 @@ class Document {
                     V.VE_CANOFAB AS ANIO_FABRICACION,
                     CL.TG_CDESCRI AS CLASE,
                     V.VE_CVERSIO AS VERSION,
-                    V.VE_CNROMOT AS MOTOR
+                    V.VE_CNROMOT AS MOTOR,
+                    A.AR_NPRECI1 AS PRECIO
                 FROM FT0002VEHI V
                 LEFT JOIN AL0002TABL CL
                     ON V.VE_CCLASE = CL.TG_CCLAVE
@@ -206,6 +207,8 @@ class Document {
                 LEFT JOIN AL0002TABL CO
                     ON V.VE_CCOLOR = CO.TG_CCLAVE
                    AND CO.TG_CCOD = 'V8'
+                LEFT JOIN AL0002ARTI A
+                    ON V.VE_CCHASIS = A.AR_CCODIGO
                 WHERE V.VE_CCHASIS = ?
                 ORDER BY V.VE_CANOFAB DESC";
         $result = sqlsrv_query($this->conn, $sql, [$chasis]);

@@ -171,12 +171,11 @@
                 <select name="OC_COMPRADOR_TIPO_DOCUMENTO" style="width:100px;">
                     <option value="">-- Seleccione --</option>
                     <option value="dni">DNI</option>
-                    <option value="pasaporte">PASAPORTE</option>
                     <option value="carnet">CARNET EXTRANJERIA</option>
                     <option value="ruc">RUC</option>
                 </select>
                 <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px;">NRO. DOC</div>
-                <input type="text" name="OC_COMPRADOR_NUMERO_DOCUMENTO" style="width:150px;">
+                <input type="text" name="OC_COMPRADOR_NUMERO_DOCUMENTO" style="width:150px;" oninput="validarNumeroDocumentoComprador()">
             </div>
 
             <!-- Fila 2 -->
@@ -323,7 +322,7 @@
         <div style="flex:1;">
             <!-- Encabezados -->
             <div style="display:flex; border-bottom:1px solid #000; text-align:center; font-weight:bold;">
-                <div style="flex:1; padding:4px;">Clase</div>
+                <div style="flex:1; padding:4px;">Chasis</div>
                 <div style="flex:1; padding:4px;">Marca</div>
                 <div style="flex:1; padding:4px;">Modelo</div>
                 <div style="flex:1; padding:4px;">Versión</div>
@@ -331,7 +330,7 @@
             </div>
             <!-- Inputs -->
             <div style="display:flex; border-bottom:1px solid #000;">
-                <input type="text" name="OC_VEHICULO_CLASE" style="flex:1;">
+                <input type="text" name="OC_VEHICULO_CHASIS" style="flex:1;">
                 <input type="text" name="OC_VEHICULO_MARCA" style="flex:1;">
                 <input type="text" name="OC_VEHICULO_MODELO" style="flex:1;">
                 <input type="text" name="OC_VEHICULO_VERSION" style="flex:1;">
@@ -341,14 +340,14 @@
             <!-- Encabezados -->
             <div style="display:flex; border-bottom:1px solid #000; text-align:center; font-weight:bold;">
                 <div style="flex:1; padding:4px;">Motor</div>
-                <div style="flex:1; padding:4px;">Chasis</div>
+                <div style="flex:1; padding:4px;">Clase</div>
                 <div style="flex:1; padding:4px;">Color</div>
                 <div style="flex:1; padding:4px;">Año Mod.</div>
             </div>
             <!-- Inputs -->
             <div style="display:flex; border-bottom:1px solid #000;">
                 <input type="text" name="OC_VEHICULO_MOTOR" style="flex:1;">
-                <input type="text" name="OC_VEHICULO_CHASIS" style="flex:1;">
+                <input type="text" name="OC_VEHICULO_CLASE" style="flex:1;">
                 <input type="text" name="OC_VEHICULO_COLOR" style="flex:1;">
                 <input type="text" name="OC_VEHICULO_ANIO_MODELO" style="flex:1;">
             </div>
@@ -366,16 +365,6 @@
                 <input type="text" name="OC_PRIMER_MANTENIMIENTO" style="flex:1;">
             </div>
 
-            <!-- Tipo de uso -->
-            <div style="display:flex; align-items:center; border-bottom:1px solid #000; padding:4px; font-weight:bold;">
-                Tipo de uso del vehículo:
-                <label style="margin-left:10px; font-weight:normal;">
-                    <input type="radio" name="OC_USO_VEHICULO" value="particular"> Particular
-                </label>
-                <label style="margin-left:15px; font-weight:normal;">
-                    <input type="radio" name="OC_USO_VEHICULO" value="servicio"> Servicio Público
-                </label>
-            </div>
         </div>
     </div>
 
@@ -427,7 +416,14 @@
                 <div style="background:#ffffff; font-weight:bold; padding:4px;">Equipamiento adicional</div>
                 <div style="border-bottom:1px solid #000; padding:4px;">
                     <div style="display:flex; margin-bottom:4px;">
-                        <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_1" placeholder="Descripción" style="flex:1; margin-right:5px;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_1" style="flex:1; margin-right:5px;">
+                            <option value="">-- Seleccione --</option>
+                            <option value="ACCESORIOS">ACCESORIOS</option>
+                            <option value="GPS">GPS</option>
+                            <option value="GLP">GLP</option>
+                            <option value="PPM">PPM</option>
+                            <option value="SEGURO">SEGURO</option>
+                        </select>
                         <select name="OC_MONEDA_EQUIPAMIENTO_1" style="width:70px; margin-right:5px;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
@@ -435,7 +431,14 @@
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_1" style="flex:1;">
                     </div>
                     <div style="display:flex; margin-bottom:4px;">
-                        <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_2" placeholder="Descripción" style="flex:1; margin-right:5px;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_2" style="flex:1; margin-right:5px;">
+                            <option value="">-- Seleccione --</option>
+                            <option value="ACCESORIOS">ACCESORIOS</option>
+                            <option value="GPS">GPS</option>
+                            <option value="GLP">GLP</option>
+                            <option value="PPM">PPM</option>
+                            <option value="SEGURO">SEGURO</option>
+                        </select>
                         <select name="OC_MONEDA_EQUIPAMIENTO_2" style="width:70px; margin-right:5px;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
@@ -443,7 +446,14 @@
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_2" style="flex:1;">
                     </div>
                     <div style="display:flex; margin-bottom:4px;">
-                        <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_3" placeholder="Descripción" style="flex:1; margin-right:5px;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_3" style="flex:1; margin-right:5px;">
+                            <option value="">-- Seleccione --</option>
+                            <option value="ACCESORIOS">ACCESORIOS</option>
+                            <option value="GPS">GPS</option>
+                            <option value="GLP">GLP</option>
+                            <option value="PPM">PPM</option>
+                            <option value="SEGURO">SEGURO</option>
+                        </select>
                         <select name="OC_MONEDA_EQUIPAMIENTO_3" style="width:70px; margin-right:5px;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
@@ -451,7 +461,14 @@
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_3" style="flex:1;">
                     </div>
                     <div style="display:flex; margin-bottom:4px;">
-                        <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_4" placeholder="Descripción" style="flex:1; margin-right:5px;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_4" style="flex:1; margin-right:5px;">
+                            <option value="">-- Seleccione --</option>
+                            <option value="ACCESORIOS">ACCESORIOS</option>
+                            <option value="GPS">GPS</option>
+                            <option value="GLP">GLP</option>
+                            <option value="PPM">PPM</option>
+                            <option value="SEGURO">SEGURO</option>
+                        </select>
                         <select name="OC_MONEDA_EQUIPAMIENTO_4" style="width:70px; margin-right:5px;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
@@ -459,7 +476,14 @@
                         <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_4" style="flex:1;">
                     </div>
                     <div style="display:flex;">
-                        <input type="text" name="OC_DESCRIPCION_EQUIPAMIENTO_5" placeholder="Descripción" style="flex:1; margin-right:5px;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_5" style="flex:1; margin-right:5px;">
+                            <option value="">-- Seleccione --</option>
+                            <option value="ACCESORIOS">ACCESORIOS</option>
+                            <option value="GPS">GPS</option>
+                            <option value="GLP">GLP</option>
+                            <option value="PPM">PPM</option>
+                            <option value="SEGURO">SEGURO</option>
+                        </select>
                         <select name="OC_MONEDA_EQUIPAMIENTO_5" style="width:70px; margin-right:5px;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
@@ -585,7 +609,7 @@
     <div style="background:#ffffff; font-weight:bold; padding:4px; border-bottom:1px solid #000; text-align:center;">
         Obsequios / Cortesías / Campañas
     </div>
-    <textarea name="OC_OBSEQUIOS_CORTESIAS" style="width:100%; height:60px; border:none; background:#fdeee2;"></textarea>
+    <textarea name="OC_OBSEQUIOS_CORTESIAS" style="width:100%; height:60px; border:none; background:#fdeee2;">tarjeta y placa</textarea>
 </div>
 
 <!-- FIRMAS -->
@@ -764,11 +788,63 @@
                                     document.getElementsByName('OC_VEHICULO_VERSION')[0].value = data.VERSION || '';
                                     document.getElementsByName('OC_VEHICULO_MOTOR')[0].value = data.MOTOR || '';
                                     document.getElementsByName('OC_VEHICULO_CODIGO_FSC')[0].value = data.FSC || '';
+                                    document.getElementsByName('OC_PRECIO_VENTA')[0].value = data.PRECIO || '';
                                 }
                             })
                             .catch(error => console.error('Error:', error));
                     }
                 });
+            }
+        }
+
+        // Función para manejar bloqueo de campos de cónyuge
+        function manejarCamposConyuge() {
+            const estadoCivil = document.getElementsByName('OC_ESTADO_CIVIL')[0].value;
+            const conyugeNombre = document.getElementsByName('OC_CONYUGE_NOMBRE')[0];
+            const conyugeTipoDoc = document.getElementsByName('OC_CONYUGE_TIPO_DOCUMENTO')[0];
+            const conyugeNumDoc = document.getElementsByName('OC_CONYUGE_NUMERO_DOCUMENTO')[0];
+
+            if (estadoCivil === 'soltero') {
+                conyugeNombre.disabled = true;
+                conyugeTipoDoc.disabled = true;
+                conyugeNumDoc.disabled = true;
+                conyugeNombre.value = '';
+                conyugeTipoDoc.value = '';
+                conyugeNumDoc.value = '';
+            } else {
+                conyugeNombre.disabled = false;
+                conyugeTipoDoc.disabled = false;
+                conyugeNumDoc.disabled = false;
+            }
+        }
+
+        // Función para validar número de documento del comprador
+        function validarNumeroDocumentoComprador() {
+            const tipoDoc = document.getElementsByName('OC_COMPRADOR_TIPO_DOCUMENTO')[0].value;
+            const numDocInput = document.getElementsByName('OC_COMPRADOR_NUMERO_DOCUMENTO')[0];
+            let numDoc = numDocInput.value;
+            // Allow only digits
+            numDoc = numDoc.replace(/\D/g, '');
+            let expectedLength = 0;
+            if (tipoDoc === 'dni') {
+                expectedLength = 8;
+            } else if (tipoDoc === 'ruc') {
+                expectedLength = 11;
+            } else if (tipoDoc === 'carnet') {
+                expectedLength = 12;
+            }
+            // Limit to expected length
+            if (numDoc.length > expectedLength) {
+                numDoc = numDoc.substring(0, expectedLength);
+            }
+            numDocInput.value = numDoc;
+            // Set border color
+            if (numDoc.length === expectedLength && expectedLength > 0) {
+                numDocInput.style.borderColor = 'green';
+            } else if (numDoc.length > 0) {
+                numDocInput.style.borderColor = 'red';
+            } else {
+                numDocInput.style.borderColor = '';
             }
         }
 
@@ -816,6 +892,21 @@
             // Inicializar cálculos
             manejarBonoFinanciamiento();
             calcularTotalEquipamiento();
+
+            // Event listener para estado civil
+            const estadoCivilSelect = document.getElementsByName('OC_ESTADO_CIVIL')[0];
+            if (estadoCivilSelect) {
+                estadoCivilSelect.addEventListener('change', manejarCamposConyuge);
+            }
+
+            // Inicializar campos de cónyuge
+            manejarCamposConyuge();
+
+            // Event listener para resetear validación al cambiar tipo de documento
+            const tipoDocSelect = document.getElementsByName('OC_COMPRADOR_TIPO_DOCUMENTO')[0];
+            if (tipoDocSelect) {
+                tipoDocSelect.addEventListener('change', validarNumeroDocumentoComprador);
+            }
         });
     </script>
     </form>
