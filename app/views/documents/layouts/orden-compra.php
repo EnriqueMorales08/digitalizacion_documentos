@@ -120,7 +120,7 @@
   </div>
 
   <!-- Formulario que envuelve todo el documento -->
-  <form method="POST" action="/digitalizacion-documentos/documents/procesar-orden-compra" style="margin: 0; padding: 0;" autocomplete="off" onsubmit="alert('Formulario enviado');">
+  <form method="POST" action="/digitalizacion-documentos/documents/procesar-orden-compra" enctype="multipart/form-data" style="margin: 0; padding: 0;" autocomplete="off" onsubmit="alert('Formulario enviado');">
 
     <div class="page">
         <div class="form-container" style="margin-bottom:5px">
@@ -573,6 +573,10 @@
                     <input type="text" name="OC_SALDO_PENDIENTE" style="flex:1; border-bottom:1px solid #000" autocomplete="off">
                 </div>
 
+                <!-- Archivos de Abono -->
+                <div id="abonos-container"></div>
+                <button type="button" onclick="agregarAbono()" style="margin-top:10px; margin-left:5px; padding:3px 8px; background:#27769c; color:white; border:none; border-radius:3px; font-size:10px;">Agregar Abono</button>
+
                 <!-- Banco -->
                 <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px; height:20px;"></div>
                 <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px; height:20px;"></div>
@@ -600,6 +604,28 @@
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:90px;">Teléf. Sector:</div>
                     <input type="text" name="OC_TELEFONO_SECTORISTA" style="flex:1;border-bottom:1px solid #000;" autocomplete="off">
                 </div>
+
+                <!-- Archivos adicionales -->
+                <div style="display:flex; align-items:center; margin-top:10px;">
+                    <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px;">DNI</div>
+                    <input type="file" name="OC_ARCHIVO_DNI" accept=".pdf,.jpg,.png,.jpeg" style="flex:1;">
+                </div>
+                <div style="display:flex; align-items:center; margin-top:4px;">
+                    <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px;">VOUCHER</div>
+                    <input type="file" name="OC_ARCHIVO_VOUCHER" accept=".pdf,.jpg,.png,.jpeg" style="flex:1;">
+                </div>
+                <div style="display:flex; align-items:center; margin-top:4px;">
+                    <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px;">PEDIDO SALESFORCE</div>
+                    <input type="file" name="OC_ARCHIVO_PEDIDO_SALESFORCE" accept=".pdf,.jpg,.png,.jpeg" style="flex:1;">
+                </div>
+                <div style="display:flex; align-items:center; margin-top:4px;">
+                    <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px;">DERIVACION SANTANDER</div>
+                    <input type="file" name="OC_ARCHIVO_DERIVACION_SANTANDER" accept=".pdf,.jpg,.png,.jpeg" style="flex:1;">
+                </div>
+
+                <!-- Otros documentos -->
+                <div id="otros-container"></div>
+                <button type="button" onclick="agregarOtro()" style="margin-top:10px; margin-left:5px; margin-bottom:5px; padding:3px 8px; background:#27769c; color:white; border:none; border-radius:3px; font-size:10px;">Agregar Otro Documento</button>
             </div>
         </div>
     </div>
@@ -846,6 +872,42 @@
             } else {
                 numDocInput.style.borderColor = '';
             }
+        }
+
+        // Contador para abonos
+        let contadorAbonos = 1;
+
+        // Función para agregar abono dinámicamente
+        function agregarAbono() {
+            const container = document.getElementById('abonos-container');
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.marginBottom = '4px';
+            div.innerHTML = `
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Abono ${contadorAbonos}</div>
+                <input type="file" name="OC_ARCHIVO_ABONO_${contadorAbonos}" accept=".pdf,.jpg,.png,.jpeg" style="flex:1;">
+            `;
+            container.appendChild(div);
+            contadorAbonos++;
+        }
+
+        // Contador para otros documentos
+        let contadorOtros = 1;
+
+        // Función para agregar otro documento dinámicamente
+        function agregarOtro() {
+            const container = document.getElementById('otros-container');
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.marginTop = '4px';
+            div.innerHTML = `
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px;">Otro documento ${contadorOtros}</div>
+                <input type="file" name="OC_ARCHIVO_OTROS_${contadorOtros}" accept=".pdf,.jpg,.png,.jpeg" style="flex:1;">
+            `;
+            container.appendChild(div);
+            contadorOtros++;
         }
 
         // Agregar event listeners
