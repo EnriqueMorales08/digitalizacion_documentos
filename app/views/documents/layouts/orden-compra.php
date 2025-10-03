@@ -120,7 +120,7 @@
   </div>
 
   <!-- Formulario que envuelve todo el documento -->
-  <form method="POST" action="/digitalizacion-documentos/documents/procesar-orden-compra" enctype="multipart/form-data" style="margin: 0; padding: 0;" autocomplete="off" onsubmit="alert('Formulario enviado');">
+  <form method="POST" action="/digitalizacion-documentos/documents/procesar-orden-compra" enctype="multipart/form-data" style="margin: 0; padding: 0;" autocomplete="off">
 
     <div class="page">
         <div class="form-container" style="margin-bottom:5px">
@@ -643,15 +643,18 @@
     <!-- Asesor de venta -->
     <div style="flex:1; border:1px solid #000; margin-right:5px; display:flex; flex-direction:column; justify-content:space-between; height:70px;">
         <div></div>
-        <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px;">ASESOR DE VENTA</div>
+        <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; cursor:pointer;" onclick="mostrarLogin(this, 'asesor')">ASESOR DE VENTA</div>
     </div>
 
     <!-- Firma cliente + Huella digital -->
     <div style="flex:2.8; border:1px solid #000; margin-right:5px; display:flex; flex-direction:column; justify-content:space-between; height:70px;">
-        <div style="flex:1;"></div>
+        <div style="flex:1; display:flex;">
+            <div style="flex:1;"></div>
+            <div style="width:150px;"></div>
+        </div>
         <div style="display:flex;">
-            <div style="flex:1; background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; border-right:1px solid #000;">FIRMA CLIENTE</div>
-            <div style="width:150px; background:#ccc; text-align:center; font-weight:bold; padding:1px; font-size:10px;">HUELLA DIGITAL</div>
+            <div style="flex:1; background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; border-right:1px solid #000; cursor:pointer;" onclick="mostrarLogin(this, 'cliente')">FIRMA CLIENTE</div>
+            <div style="width:150px; background:#ccc; text-align:center; font-weight:bold; padding:1px; font-size:10px; cursor:pointer;" onclick="mostrarLogin(this, 'huella')">HUELLA DIGITAL</div>
         </div>
     </div>
 </div>
@@ -660,13 +663,13 @@
     <!-- Jefe de tienda -->
     <div style="flex:1; border:1px solid #000; margin-right:5px; display:flex; flex-direction:column; justify-content:space-between; height:70px;">
         <div></div>
-        <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px;">JEFE DE TIENDA</div>
+        <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; cursor:pointer;" onclick="mostrarLogin(this, 'jefe')">JEFE DE TIENDA</div>
     </div>
 
     <!-- Visto ADV -->
     <div style="flex:1; border:1px solid #000; display:flex; flex-direction:column; justify-content:space-between; height:70px;">
         <div></div>
-        <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px;">VISTO ADV°</div>
+        <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; cursor:pointer;" onclick="mostrarLogin(this, 'visto')">VISTO ADV°</div>
     </div>
 </div>
 
@@ -910,6 +913,87 @@
             contadorOtros++;
         }
 
+        // Variables para login de firma
+        let elementoFirmaActual = null;
+
+        // Función para mostrar login
+        function mostrarLogin(elemento, tipo) {
+            elementoFirmaActual = elemento;
+            const form = document.getElementById('login-form');
+            form.style.display = 'block';
+            form.style.left = (elemento.offsetLeft + 10) + 'px';
+            form.style.top = (elemento.offsetTop + elemento.offsetHeight + 10) + 'px';
+            document.getElementById('login-usuario').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('login-usuario').focus();
+        }
+
+        // Función para cerrar login
+        function cerrarLogin() {
+            document.getElementById('login-form').style.display = 'none';
+            elementoFirmaActual = null;
+        }
+
+        // Función para verificar firma
+        function verificarFirma() {
+            const usuario = document.getElementById('login-usuario').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            if (!usuario || !password) {
+                alert('Ingrese usuario y contraseña.');
+                return;
+            }
+            fetch('/digitalizacion-documentos/documents/verificar-firma', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'usuario=' + encodeURIComponent(usuario) + '&password=' + encodeURIComponent(password)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Insertar imagen de firma en el div vacío correspondiente
+                    const text = elementoFirmaActual.innerText.trim();
+                    if (text === 'ASESOR DE VENTA') {
+                        const emptyDiv = elementoFirmaActual.previousElementSibling;
+                        if (emptyDiv) {
+                            emptyDiv.innerHTML = '<img src="' + data.firma + '" style="max-width:100%; max-height:50px; display:block; margin:0 auto;">';
+                        }
+                        document.getElementById('asesor_firma_hidden').value = data.firma;
+                    } else if (text === 'FIRMA CLIENTE') {
+                        const topFlex = elementoFirmaActual.parentElement.previousElementSibling;
+                        if (topFlex && topFlex.children[0]) {
+                            topFlex.children[0].innerHTML = '<img src="' + data.firma + '" style="max-width:100%; max-height:50px; display:block; margin:0 auto;">';
+                        }
+                        document.getElementById('cliente_firma_hidden').value = data.firma;
+                    } else if (text === 'HUELLA DIGITAL') {
+                        const topFlex = elementoFirmaActual.parentElement.previousElementSibling;
+                        if (topFlex && topFlex.children[1]) {
+                            topFlex.children[1].innerHTML = '<img src="' + data.firma + '" style="max-width:100%; max-height:50px; display:block; margin:0 auto;">';
+                        }
+                        document.getElementById('cliente_huella_hidden').value = data.firma;
+                    } else if (text === 'JEFE DE TIENDA') {
+                        const emptyDiv = elementoFirmaActual.previousElementSibling;
+                        if (emptyDiv) {
+                            emptyDiv.innerHTML = '<img src="' + data.firma + '" style="max-width:100%; max-height:50px; display:block; margin:0 auto;">';
+                        }
+                        document.getElementById('jefe_firma_hidden').value = data.firma;
+                    } else if (text === 'VISTO ADV°') {
+                        const emptyDiv = elementoFirmaActual.previousElementSibling;
+                        if (emptyDiv) {
+                            emptyDiv.innerHTML = '<img src="' + data.firma + '" style="max-width:100%; max-height:50px; display:block; margin:0 auto;">';
+                        }
+                        document.getElementById('visto_adv_hidden').value = data.firma;
+                    }
+                    cerrarLogin();
+                } else {
+                    alert('Usuario o contraseña incorrectos.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al verificar firma.');
+            });
+        }
+
         // Agregar event listeners
         document.addEventListener('DOMContentLoaded', function() {
             const precioTotalInput = document.getElementsByName('OC_PRECIO_TOTAL_COMPRA')[0];
@@ -971,5 +1055,22 @@
             }
         });
     </script>
+
+    <!-- Campos ocultos para firmas -->
+    <input type="hidden" name="OC_ASESOR_FIRMA" id="asesor_firma_hidden">
+    <input type="hidden" name="OC_CLIENTE_FIRMA" id="cliente_firma_hidden">
+    <input type="hidden" name="OC_CLIENTE_HUELLA" id="cliente_huella_hidden">
+    <input type="hidden" name="OC_JEFE_FIRMA" id="jefe_firma_hidden">
+    <input type="hidden" name="OC_JEFE_HUELLA" id="jefe_huella_hidden">
+    <input type="hidden" name="OC_VISTO_ADV" id="visto_adv_hidden">
+
+    <!-- Formulario de login para firmas -->
+    <div id="login-form" style="display:none; position:absolute; background:white; border:1px solid #000; padding:10px; z-index:1000;">
+        <div style="margin-bottom:5px;">Usuario: <input type="text" id="login-usuario" style="width:100px;"></div>
+        <div style="margin-bottom:5px;">Contraseña: <input type="password" id="login-password" style="width:100px;"></div>
+        <button type="button" onclick="verificarFirma()">Ingresar</button>
+        <button type="button" onclick="cerrarLogin()">Cancelar</button>
+    </div>
+
     </form>
 </body>

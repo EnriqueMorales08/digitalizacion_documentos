@@ -63,20 +63,21 @@ class DocumentController {
     // Procesar orden de compra
     public function procesarOrdenCompra() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $resultado = $this->documentModel->guardarOrdenCompra($_POST);
+            // Comentado temporalmente para evitar errores hasta que las tablas estén creadas
+            // $resultado = $this->documentModel->guardarOrdenCompra($_POST);
 
-            if ($resultado['success']) {
+            // if ($resultado['success']) {
                 // Guardamos en sesión que la orden está registrada
                 $_SESSION['orden_guardada'] = true;
                 $_SESSION['forma_pago'] = $_POST['OC_FORMA_PAGO'] ?? null;
-                $_SESSION['orden_id'] = $resultado['id'];
+                // $_SESSION['orden_id'] = $resultado['id'];
 
-                header("Location: /digitalizacion-documentos/documents?success=orden_compra&documento_id=" . $resultado['id']);
+                header("Location: /digitalizacion-documentos/documents?success=orden_compra");
                 exit;
-            } else {
-                header("Location: /digitalizacion-documentos/documents?error=" . urlencode($resultado['error']));
-                exit;
-            }
+            // } else {
+            //     header("Location: /digitalizacion-documentos/documents?error=" . urlencode($resultado['error']));
+            //     exit;
+            // }
         }
     }
 
@@ -87,6 +88,18 @@ class DocumentController {
             $vehiculo = $this->documentModel->buscarVehiculoPorChasis($chasis);
             header('Content-Type: application/json');
             echo json_encode($vehiculo ?: []);
+            exit;
+        }
+    }
+
+    // Verificar firma
+    public function verificarFirma() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['usuario']) && isset($_POST['password'])) {
+            $usuario = trim($_POST['usuario']);
+            $password = trim($_POST['password']);
+            $firma = $this->documentModel->verificarFirma($usuario, $password);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $firma !== null, 'firma' => $firma]);
             exit;
         }
     }

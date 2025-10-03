@@ -236,4 +236,14 @@ class Document {
 
         return $vehiculo;
     }
+
+    public function verificarFirma($usuario, $password) {
+        $sql = "SELECT firma_data FROM firmas WHERE usuario = ? AND password = ?";
+        $result = sqlsrv_query($this->conn, $sql, [$usuario, $password]);
+        if (!$result) {
+            return null;
+        }
+        $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+        return $row ? 'http://190.238.78.104:3800' . $row['firma_data'] : null;
+    }
 }

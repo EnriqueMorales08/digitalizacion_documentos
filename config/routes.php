@@ -32,6 +32,10 @@ if ($uri === '/' || $uri === ''
 } elseif ($method === 'GET' && ($uri === '/documents/buscar-vehiculo' || $uri === '/digitalizacion-documentos/documents/buscar-vehiculo')) {
     $controller->buscarVehiculo();
 
+// VERIFICAR FIRMA
+} elseif ($method === 'POST' && ($uri === '/documents/verificar-firma' || $uri === '/digitalizacion-documentos/documents/verificar-firma')) {
+    $controller->verificarFirma();
+
 // ACTA CONOCIMIENTO CONFORMIDAD
 } elseif ($method === 'POST' && ($uri === '/documents/procesar-acta-conformidad' || $uri === '/digitalizacion-documentos/documents/procesar-acta-conformidad')) {
     $controller->procesarActaConformidad();
