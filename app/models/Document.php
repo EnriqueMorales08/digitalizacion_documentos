@@ -10,8 +10,50 @@ class Document {
         $this->conn = $db->getConnection();
     }
 
-    public function guardarOrdenCompra($data) {
+    private function subirArchivo($file, $prefix = 'file') {
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+
+        // Crear directorio si no existe
+        $uploadDir = '../uploads/'; // Relativo al script
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = $prefix . '_' . time() . '_' . uniqid() . '.' . $extension;
+        $filepath = $uploadDir . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            // Ruta relativa para remoto
+            return '/digitalizacion-documentos/uploads/' . $filename;
+        }
+
+        return null;
+    }
+
+    public function guardarOrdenCompra($data, $files = []) {
         try {
+            // Procesar archivos primero
+            $archivos = [];
+            if (!empty($files)) {
+                $archivos['OC_ARCHIVO_DNI'] = $this->subirArchivo($files['OC_ARCHIVO_DNI'] ?? null, 'dni');
+                $archivos['OC_ARCHIVO_VOUCHER'] = $this->subirArchivo($files['OC_ARCHIVO_VOUCHER'] ?? null, 'voucher');
+                $archivos['OC_ARCHIVO_PEDIDO_SALESFORCE'] = $this->subirArchivo($files['OC_ARCHIVO_PEDIDO_SALESFORCE'] ?? null, 'salesforce');
+                $archivos['OC_ARCHIVO_DERIVACION_SANTANDER'] = $this->subirArchivo($files['OC_ARCHIVO_DERIVACION_SANTANDER'] ?? null, 'santander');
+
+                // Procesar abonos en campos separados
+                for ($i = 1; $i <= 6; $i++) {
+                    $archivos['OC_ARCHIVO_ABONO_' . $i] = $this->subirArchivo($files['OC_ARCHIVO_ABONO_' . $i] ?? null, 'abono_' . $i);
+                }
+
+                // Procesar otros documentos en campos separados
+                for ($i = 1; $i <= 6; $i++) {
+                    $archivos['OC_ARCHIVO_OTROS_' . $i] = $this->subirArchivo($files['OC_ARCHIVO_OTROS_' . $i] ?? null, 'otros_' . $i);
+                }
+            }
+
             // Filtrar solo campos OC_ y truncar si es necesario
             $fields = [];
             $placeholders = [];
@@ -24,7 +66,9 @@ class Document {
             $decimalFields = [
                 'OC_PRECIO_VENTA', 'OC_BONO_FINANCIAMIENTO', 'OC_TOTAL_EQUIPAMIENTO',
                 'OC_PRECIO_TOTAL_COMPRA', 'OC_TIPO_CAMBIO', 'OC_TIPO_CAMBIO_SOL',
-                'OC_PAGO_CUENTA', 'OC_SALDO_PENDIENTE'
+                'OC_PAGO_CUENTA', 'OC_SALDO_PENDIENTE',
+                'OC_EQUIPAMIENTO_ADICIONAL_1', 'OC_EQUIPAMIENTO_ADICIONAL_2', 'OC_EQUIPAMIENTO_ADICIONAL_3',
+                'OC_EQUIPAMIENTO_ADICIONAL_4', 'OC_EQUIPAMIENTO_ADICIONAL_5'
             ];
             foreach ($data as $key => $value) {
                 if (strpos($key, 'OC_') === 0) {
@@ -44,7 +88,7 @@ class Document {
                             if ($num > 9999999999.99) {
                                 $val = null; // O truncar, pero null para evitar error
                             } else {
-                                $val = $cleanVal;
+                                $val = $num; // Convertir a float
                             }
                         } else {
                             // Si no es numérico, setear a null para evitar errores de conversión
@@ -56,6 +100,15 @@ class Document {
                         $val = null;
                     }
                     $values[] = $val;
+                }
+            }
+
+            // Agregar campos de archivos
+            foreach ($archivos as $key => $ruta) {
+                if ($ruta) {
+                    $fields[] = $key;
+                    $placeholders[] = "?";
+                    $values[] = $ruta;
                 }
             }
 
@@ -124,7 +177,14 @@ class Document {
         }
 
         // Carta Características
-        $sql = "INSERT INTO SIST_CARTA_CARACTERISTICAS (CC_DOCUMENTO_VENTA_ID, CC_CLIENTE_NOMBRE, CC_CLIENTE_DNI, CC_VEHICULO_MARCA, CC_VEHICULO_MODELO, CC_VEHICULO_ANIO_MODELO, CC_VEHICULO_CHASIS, CC_VEHICULO_MOTOR, CC_VEHICULO_COLOR, CC_PROPIETARIO_TARJETA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO SIST_CARTA_CARACTERISTICAS (CC_DOCUMENTO_VENTA_ID, CC_CLIENTE_NOMBRE, CC_CLIENTE_DNI, CC_VEHICULO_MARCA, CC_VEHICULO_MODELO, CC_VEHICULO_ANIO_MODELO, CC_VEHICULO_CHASIS, CC_VEHICULO_MOTOR, CC_VEHICULO_COLOR, CC_PRECIO_VEHICULO, CC_PROPIETARIO_TARJETA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100), $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10), $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50), $trunc($data['OC_VEHICULO_MOTOR'] ?? null, 50), $trunc($data['OC_VEHICULO_COLOR'] ?? null, 50), $data['OC_PRECIO_VENTA'] ?? null, $trunc($data['OC_PROPIETARIO_NOMBRE'] ?? null, 200)];
+        if (!sqlsrv_query($this->conn, $sql, $params)) {
+            throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
+        }
+
+        // Carta Características Banbif
+        $sql = "INSERT INTO SIST_CARTA_CARACTERISTICAS_BANBIF (CCB_DOCUMENTO_VENTA_ID, CCB_CLIENTE_NOMBRE, CCB_CLIENTE_DNI, CCB_VEHICULO_MARCA, CCB_VEHICULO_MODELO, CCB_VEHICULO_ANIO_MODELO, CCB_VEHICULO_CHASIS, CCB_VEHICULO_MOTOR, CCB_VEHICULO_COLOR, CCB_PROPIETARIO_TARJETA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $params = [$ordenId, $trunc($data['OC_COMPRADOR_NOMBRE'] ?? null, 200), $trunc($data['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? null, 20), $trunc($data['OC_VEHICULO_MARCA'] ?? null, 100), $trunc($data['OC_VEHICULO_MODELO'] ?? null, 100), $trunc($data['OC_VEHICULO_ANIO_MODELO'] ?? null, 10), $trunc($data['OC_VEHICULO_CHASIS'] ?? null, 50), $trunc($data['OC_VEHICULO_MOTOR'] ?? null, 50), $trunc($data['OC_VEHICULO_COLOR'] ?? null, 50), $trunc($data['OC_PROPIETARIO_NOMBRE'] ?? null, 200)];
         if (!sqlsrv_query($this->conn, $sql, $params)) {
             throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
@@ -166,6 +226,7 @@ class Document {
             'carta_conocimiento_aceptacion' => ['table' => 'SIST_CARTA_CONOCIMIENTO_ACEPTACION', 'field' => 'CCA_DOCUMENTO_VENTA_ID'],
             'carta_recepcion' => ['table' => 'SIST_CARTA_RECEPCION', 'field' => 'CR_DOCUMENTO_VENTA_ID'],
             'carta-caracteristicas' => ['table' => 'SIST_CARTA_CARACTERISTICAS', 'field' => 'CC_DOCUMENTO_VENTA_ID'],
+            'carta_caracteristicas_banbif' => ['table' => 'SIST_CARTA_CARACTERISTICAS_BANBIF', 'field' => 'CCB_DOCUMENTO_VENTA_ID'],
             'carta_felicitaciones' => ['table' => 'SIST_CARTA_FELICITACIONES', 'field' => 'CF_DOCUMENTO_VENTA_ID'],
             'carta_obsequios' => ['table' => 'SIST_CARTA_OBSEQUIOS', 'field' => 'CO_DOCUMENTO_VENTA_ID'],
             'politica_proteccion_datos' => ['table' => 'SIST_POLITICA_PROTECCION_DATOS', 'field' => 'PPD_DOCUMENTO_VENTA_ID']
@@ -245,5 +306,18 @@ class Document {
         }
         $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
         return $row ? 'http://190.238.78.104:3800' . $row['firma_data'] : null;
+    }
+
+    public function getBancos() {
+        $sql = "SELECT TOP 100 BANCO FROM i_cosbanco ORDER BY BANCO";
+        $result = sqlsrv_query($this->conn, $sql);
+        if (!$result) {
+            return [];
+        }
+        $bancos = [];
+        while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            $bancos[] = $row['BANCO'];
+        }
+        return $bancos;
     }
 }

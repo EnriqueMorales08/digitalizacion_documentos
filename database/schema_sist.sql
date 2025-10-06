@@ -1,19 +1,11 @@
 -- =====================================================
--- BASE DE DATOS: documentos_db
+-- BASE DE DATOS: FACCARPRUEBA
 -- Esquema con patrón SIST_ para tablas y campos
 -- Versión completa con campos duplicados y firmas
 -- =====================================================
 
--- Crear base de datos
-CREATE DATABASE documentos_db;
-GO
-
-USE documentos_db;
-GO
-
-PRINT '🚀 Iniciando creación/actualización de base de datos documentos_db...';
-PRINT '📋 Incluye campos duplicados (2 fechas nacimiento, 2 teléfonos) y campos de firmas';
-GO
+PRINT '🚀 Iniciando creación/actualización de base de datos FACCARPRUEBA...'
+PRINT '📋 Incluye campos duplicados (2 fechas nacimiento 2 teléfonos) y campos de firmas'
 
 -- =====================================================
 -- TABLA PRINCIPAL: SIST_ORDEN_COMPRA
@@ -49,7 +41,7 @@ CREATE TABLE SIST_ORDEN_COMPRA (
 
     -- INFORMACIÓN DE CONTACTO (orden del formulario)
     OC_DIRECCION_CLIENTE NVARCHAR(300),
-    OC_TELEFONOS_CLIENTE NVARCHAR(100), -- Teléfono principal
+    OC_TELEFONO_CLIENTE NVARCHAR(100), -- Teléfono principal
     OC_EMAIL_CLIENTE NVARCHAR(150),
     OC_TELEFONO_ADICIONAL NVARCHAR(100), -- Teléfono adicional
     OC_OCUPACION_CLIENTE NVARCHAR(100),
@@ -79,7 +71,7 @@ CREATE TABLE SIST_ORDEN_COMPRA (
     OC_VEHICULO_ANIO_MODELO NVARCHAR(10),
     OC_PERIODO_GARANTIA NVARCHAR(100),
     OC_PERIODICIDAD_MANTENIMIENTO NVARCHAR(100),
-    OC_PRIMER_MANTENIMIENTO NVARCHAR(100)
+    OC_PRIMER_MANTENIMIENTO NVARCHAR(100),
 
     -- VALOR DE LA COMPRA / FORMA DE PAGO (orden del formulario)
     OC_FORMA_PAGO NVARCHAR(20), -- CONTADO, CRÉDITO
@@ -138,7 +130,25 @@ CREATE TABLE SIST_ORDEN_COMPRA (
     OC_JEFE_NOMBRE NVARCHAR(200), -- Nombre del jefe de tienda
     OC_JEFE_FIRMA NVARCHAR(200), -- Firma del jefe
     OC_JEFE_HUELLA NVARCHAR(200), -- Huella del jefe
-    OC_VISTO_ADV NVARCHAR(200) -- Visto ADV (por definir)
+    OC_VISTO_ADV NVARCHAR(200), -- Visto ADV (por definir)
+
+    -- ARCHIVOS ADJUNTOS (orden del formulario)
+    OC_ARCHIVO_DNI NVARCHAR(500),
+    OC_ARCHIVO_VOUCHER NVARCHAR(500),
+    OC_ARCHIVO_PEDIDO_SALESFORCE NVARCHAR(500),
+    OC_ARCHIVO_DERIVACION_SANTANDER NVARCHAR(500),
+    OC_ARCHIVO_ABONO_1 NVARCHAR(500),
+    OC_ARCHIVO_ABONO_2 NVARCHAR(500),
+    OC_ARCHIVO_ABONO_3 NVARCHAR(500),
+    OC_ARCHIVO_ABONO_4 NVARCHAR(500),
+    OC_ARCHIVO_ABONO_5 NVARCHAR(500),
+    OC_ARCHIVO_ABONO_6 NVARCHAR(500),
+    OC_ARCHIVO_OTROS_1 NVARCHAR(500),
+    OC_ARCHIVO_OTROS_2 NVARCHAR(500),
+    OC_ARCHIVO_OTROS_3 NVARCHAR(500),
+    OC_ARCHIVO_OTROS_4 NVARCHAR(500),
+    OC_ARCHIVO_OTROS_5 NVARCHAR(500),
+    OC_ARCHIVO_OTROS_6 NVARCHAR(500)
 );
 ;
 
@@ -277,11 +287,47 @@ CREATE TABLE SIST_CARTA_CARACTERISTICAS (
 
     -- Valores
     CC_PRECIO_VEHICULO DECIMAL(12,2),
-    CC_MONTO_DESEMBOLSO DECIMAL(12,2),
+    CC_CUOTA_INICIAL DECIMAL(12,2),
+    CC_MONTO_APROBADO_NETO DECIMAL(12,2),
+    CC_CAMPANA_VEHICULO NVARCHAR(200),
     CC_PROPIETARIO_TARJETA NVARCHAR(200),
 
     FOREIGN KEY (CC_DOCUMENTO_VENTA_ID) REFERENCES SIST_ORDEN_COMPRA(OC_ID)
 );
+
+-- =====================================================
+-- VERIFICACIÓN Y ACTUALIZACIÓN AUTOMÁTICA
+-- Agrega campos faltantes si la tabla ya existe
+-- =====================================================
+
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'SIST_CARTA_CARACTERISTICAS')
+BEGIN
+    PRINT '📋 Verificando tabla SIST_CARTA_CARACTERISTICAS...';
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_CARTA_CARACTERISTICAS') AND name = 'CC_CUOTA_INICIAL')
+    BEGIN
+        ALTER TABLE SIST_CARTA_CARACTERISTICAS ADD CC_CUOTA_INICIAL DECIMAL(12,2);
+        PRINT '✅ Campo CC_CUOTA_INICIAL agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_CARTA_CARACTERISTICAS') AND name = 'CC_MONTO_APROBADO_NETO')
+    BEGIN
+        ALTER TABLE SIST_CARTA_CARACTERISTICAS ADD CC_MONTO_APROBADO_NETO DECIMAL(12,2);
+        PRINT '✅ Campo CC_MONTO_APROBADO_NETO agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_CARTA_CARACTERISTICAS') AND name = 'CC_CAMPANA_VEHICULO')
+    BEGIN
+        ALTER TABLE SIST_CARTA_CARACTERISTICAS ADD CC_CAMPANA_VEHICULO NVARCHAR(200);
+        PRINT '✅ Campo CC_CAMPANA_VEHICULO agregado.';
+    END
+
+    IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_CARTA_CARACTERISTICAS') AND name = 'CC_MONTO_DESEMBOLSO')
+    BEGIN
+        ALTER TABLE SIST_CARTA_CARACTERISTICAS DROP COLUMN CC_MONTO_DESEMBOLSO;
+        PRINT '✅ Campo CC_MONTO_DESEMBOLSO eliminado.';
+    END
+END
 ;
 
 -- =====================================================
@@ -341,6 +387,40 @@ CREATE TABLE SIST_CARTA_OBSEQUIOS (
     CO_OBSEQUIOS NTEXT,
 
     FOREIGN KEY (CO_DOCUMENTO_VENTA_ID) REFERENCES SIST_ORDEN_COMPRA(OC_ID)
+);
+
+-- =====================================================
+-- TABLA: SIST_CARTA_CARACTERISTICAS_BANBIF
+-- =====================================================
+
+CREATE TABLE SIST_CARTA_CARACTERISTICAS_BANBIF (
+    CCB_ID INT IDENTITY(1,1) PRIMARY KEY,
+    CCB_FECHA_CREACION DATETIME DEFAULT GETDATE(),
+    CCB_DOCUMENTO_VENTA_ID INT,
+
+    -- Encabezado
+    CCB_FECHA_CARTA NVARCHAR(100),
+    CCB_EMPRESA_DESTINO NVARCHAR(200),
+
+    -- Datos del cliente
+    CCB_CLIENTE_NOMBRE NVARCHAR(200),
+    CCB_CLIENTE_DNI NVARCHAR(20),
+
+    -- Datos del vehículo
+    CCB_VEHICULO_MARCA NVARCHAR(100),
+    CCB_VEHICULO_MODELO NVARCHAR(100),
+    CCB_VEHICULO_ANIO_MODELO NVARCHAR(10),
+    CCB_VEHICULO_CHASIS NVARCHAR(50),
+    CCB_VEHICULO_MOTOR NVARCHAR(50),
+    CCB_VEHICULO_CARROCERIA NVARCHAR(50),
+    CCB_VEHICULO_COLOR NVARCHAR(50),
+
+    -- Valores
+    CCB_PRECIO_VEHICULO DECIMAL(12,2),
+    CCB_MONTO_DESEMBOLSO DECIMAL(12,2),
+    CCB_PROPIETARIO_TARJETA NVARCHAR(200),
+
+    FOREIGN KEY (CCB_DOCUMENTO_VENTA_ID) REFERENCES SIST_ORDEN_COMPRA(OC_ID)
 );
 
 -- =====================================================
@@ -437,6 +517,109 @@ BEGIN
         PRINT '✅ Campo OC_VISTO_ADV agregado.';
     END
 
+    -- Campos de archivos adjuntos
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_DNI')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_DNI NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_DNI agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_VOUCHER')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_VOUCHER NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_VOUCHER agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_PEDIDO_SALESFORCE')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_PEDIDO_SALESFORCE NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_PEDIDO_SALESFORCE agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_DERIVACION_SANTANDER')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_DERIVACION_SANTANDER NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_DERIVACION_SANTANDER agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVOS_ABONOS')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVOS_ABONOS NVARCHAR(MAX);
+        PRINT '✅ Campo OC_ARCHIVOS_ABONOS agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_ABONO_1')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_ABONO_1 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_ABONO_1 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_ABONO_2')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_ABONO_2 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_ABONO_2 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_ABONO_3')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_ABONO_3 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_ABONO_3 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_ABONO_4')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_ABONO_4 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_ABONO_4 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_ABONO_5')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_ABONO_5 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_ABONO_5 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_ABONO_6')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_ABONO_6 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_ABONO_6 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_OTROS_1')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_OTROS_1 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_OTROS_1 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_OTROS_2')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_OTROS_2 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_OTROS_2 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_OTROS_3')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_OTROS_3 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_OTROS_3 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_OTROS_4')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_OTROS_4 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_OTROS_4 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_OTROS_5')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_OTROS_5 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_OTROS_5 agregado.';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_ARCHIVO_OTROS_6')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_ARCHIVO_OTROS_6 NVARCHAR(500);
+        PRINT '✅ Campo OC_ARCHIVO_OTROS_6 agregado.';
+    END
+
     -- Campos de descripción de equipamiento adicional
     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_DESCRIPCION_EQUIPAMIENTO_1')
     BEGIN
@@ -493,13 +676,11 @@ ELSE
 BEGIN
     PRINT '🆕 Nueva tabla creada con todos los campos incluidos.';
 END
-GO
 
-PRINT '✅ BASE DE DATOS documentos_db COMPLETA';
-PRINT '📋 Campos incluidos:';
-PRINT '👥 Cliente: 2 fechas nacimiento, 2 teléfonos';
-PRINT '✍️ Firmas: asesor, cliente, jefe de tienda';
-PRINT '🔍 Huellas: asesor, cliente, jefe de tienda';
-PRINT '📝 Visto ADV: campo temporal';
-PRINT '🚀 Total: 70+ campos organizados por orden del formulario';
-GO
+PRINT '✅ BASE DE DATOS FACCARPRUEBA COMPLETA'
+PRINT '📋 Campos incluidos:'
+PRINT '👥 Cliente: 2 fechas nacimiento 2 teléfonos'
+PRINT '✍️ Firmas: asesor cliente jefe de tienda'
+PRINT '🔍 Huellas: asesor cliente jefe de tienda'
+PRINT '📝 Visto ADV: campo temporal'
+PRINT '🚀 Total: 70+ campos organizados por orden del formulario'

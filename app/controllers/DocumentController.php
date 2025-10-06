@@ -23,6 +23,7 @@ class DocumentController {
             ['id' => 'carta_felicitaciones', 'title' => 'Carta Felicitaciones'],
             ['id' => 'carta_recepcion', 'title' => 'Carta Recepción'],
             ['id' => 'carta-caracteristicas', 'title' => 'Carta Características'],
+            ['id' => 'carta_caracteristicas_banbif', 'title' => 'Carta Características Banbif'],
             ['id' => 'carta_obsequios', 'title' => 'Carta Obsequios'],
             ['id' => 'politica_proteccion_datos', 'title' => 'Política de Protección de Datos'],
         ];
@@ -53,9 +54,13 @@ class DocumentController {
             $documentData = $this->documentModel->getDocumentData($id, $ordenId);
         }
 
+        // Obtener lista de bancos
+        $bancos = $this->documentModel->getBancos();
+
         // Hacer disponibles las variables en la vista
         $ordenCompraData = $ordenCompraData;
         $documentData = $documentData;
+        $bancos = $bancos;
 
         require __DIR__ . '/../views/documents/layouts/' . $id . '.php';
     }
@@ -63,21 +68,20 @@ class DocumentController {
     // Procesar orden de compra
     public function procesarOrdenCompra() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Comentado temporalmente para evitar errores hasta que las tablas estén creadas
-            // $resultado = $this->documentModel->guardarOrdenCompra($_POST);
+            $resultado = $this->documentModel->guardarOrdenCompra($_POST, $_FILES);
 
-            // if ($resultado['success']) {
+            if ($resultado['success']) {
                 // Guardamos en sesión que la orden está registrada
                 $_SESSION['orden_guardada'] = true;
                 $_SESSION['forma_pago'] = $_POST['OC_FORMA_PAGO'] ?? null;
-                // $_SESSION['orden_id'] = $resultado['id'];
+                $_SESSION['orden_id'] = $resultado['id'];
 
                 header("Location: /digitalizacion-documentos/documents?success=orden_compra");
                 exit;
-            // } else {
-            //     header("Location: /digitalizacion-documentos/documents?error=" . urlencode($resultado['error']));
-            //     exit;
-            // }
+            } else {
+                header("Location: /digitalizacion-documentos/documents?error=" . urlencode($resultado['error']));
+                exit;
+            }
         }
     }
 

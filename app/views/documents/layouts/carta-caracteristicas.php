@@ -220,8 +220,16 @@
             <div class="detail-value">: <input type="text" name="CC_PRECIO_VEHICULO" value="<?php echo htmlspecialchars(($ordenCompraData['OC_MONEDA_PRECIO_VENTA'] ?? '') . ' ' . ($ordenCompraData['OC_PRECIO_VENTA'] ?? '')); ?>" style="width: 150px;"></div>
         </div>
         <div class="detail-row">
-            <div class="detail-label">Monto a desembolsar</div>
-            <div class="detail-value">: <input type="text" name="CC_MONTO_DESEMBOLSO" value="<?php echo htmlspecialchars(($ordenCompraData['OC_MONEDA_PRECIO_VENTA'] ?? '') . ' ' . ($ordenCompraData['OC_PRECIO_VENTA'] ?? '')); ?>" style="width: 150px;"></div>
+            <div class="detail-label">Cuota inicial</div>
+            <div class="detail-value">: <input type="text" name="CC_CUOTA_INICIAL" style="width: 150px;"></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Monto Aprobado Neto</div>
+            <div class="detail-value">: <input type="text" name="CC_MONTO_APROBADO_NETO" style="width: 150px;"></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Campaña Vehículo</div>
+            <div class="detail-value">: <input type="text" name="CC_CAMPANA_VEHICULO" style="width: 150px;"></div>
         </div>
     </div>
 

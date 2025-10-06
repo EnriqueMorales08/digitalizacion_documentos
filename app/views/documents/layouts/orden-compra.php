@@ -248,7 +248,7 @@
                 <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Dirección</div>
                 <input type="text" name="OC_DIRECCION_CLIENTE" style="width:385px;">
                 <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px; margin-left:15px;">Teléfonos</div>
-                <input type="text" name="OC_TELEFONOS_CLIENTE" style="width:130px;">
+                <input type="text" name="OC_TELEFONO_CLIENTE" style="width:130px;">
             </div>
 
             <!-- Fila 6 -->
@@ -560,7 +560,12 @@
                 <div style="display:flex; align-items:center;border-bottom:1px solid #000">
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:130px;">Entidad financiera de
                         abono</div>
-                    <input type="text" name="OC_ENTIDAD_FINANCIERA" style="flex:1;" placeholder="BCP" autocomplete="off">
+                    <select name="OC_ENTIDAD_FINANCIERA" style="flex:1;">
+                        <option value="">-- Seleccione --</option>
+                        <?php foreach ($bancos as $banco): ?>
+                            <option value="<?php echo htmlspecialchars($banco); ?>"><?php echo htmlspecialchars($banco); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <!-- Saldo -->
@@ -584,7 +589,12 @@
 
                 <div style="display:flex; ">
                     <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px;">Banco:</div>
-                    <input type="text" name="OC_BANCO_ABONO" style="flex:1;border-bottom:1px solid #000;" autocomplete="off">
+                    <select name="OC_BANCO_ABONO" style="flex:1;border-bottom:1px solid #000;">
+                        <option value="">-- Seleccione --</option>
+                        <?php foreach ($bancos as $banco): ?>
+                            <option value="<?php echo htmlspecialchars($banco); ?>"><?php echo htmlspecialchars($banco); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <!-- Sectorista -->
