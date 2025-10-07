@@ -98,12 +98,12 @@
         margin-top: 100px;
     }
 
-    .signature::before {
+    .signature::after {
         content: "";
         display: block;
         width: 300px;
         /* línea larga */
-        margin: 0 auto 10px auto;
+        margin: 10px auto 0 auto;
         border-top: 1px solid #000;
     }
 
@@ -196,8 +196,13 @@
 
     <!-- Firma -->
     <div class="signature">
-        <span>FIRMA CLIENTE</span>
+        <?php if (!empty($ordenCompraData['OC_CLIENTE_FIRMA'])): ?>
+        <img src="<?php echo htmlspecialchars($ordenCompraData['OC_CLIENTE_FIRMA']); ?>" style="max-width:300px; max-height:50px;">
+        <?php else: ?>
+        <span contenteditable="true" spellcheck="false">Firma</span>
+        <?php endif; ?>
     </div>
+    <div style="text-align: center; font-weight: bold; margin-top: 5px;">Firma del cliente</div>
     </div>
 </body>
 

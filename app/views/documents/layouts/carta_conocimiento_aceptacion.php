@@ -120,7 +120,7 @@
 
   <hr class="divider"/>
 
-  <div class="row"><span class="label">Firma del cliente:</span><span class="u w-300" contenteditable="true" spellcheck="false" id="firma_cliente">Firma</span></div>
+  <div class="row"><span class="label">Firma del cliente:</span><span class="u w-300" contenteditable="true" spellcheck="false" id="firma_cliente"><?php if (!empty($ordenCompraData['OC_CLIENTE_FIRMA'])): ?><img src="<?php echo htmlspecialchars($ordenCompraData['OC_CLIENTE_FIRMA']); ?>" style="max-width:100%; max-height:50px;"><?php else: ?>Firma<?php endif; ?></span></div>
   <div class="row"><span class="label">Nombre:</span><span class="u w-300" contenteditable="true" spellcheck="false" id="nombre_firma"><?php echo htmlspecialchars($ordenCompraData['OC_COMPRADOR_NOMBRE'] ?? ''); ?></span></div>
   <div class="row"><span class="label">DNI/CE:</span><span class="u w-220" contenteditable="true" spellcheck="false" id="documento_firma"><?php echo htmlspecialchars($ordenCompraData['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? ''); ?></span></div>
   <div class="row"><span class="label">Fecha:</span><span class="u w-140" contenteditable="true" spellcheck="false" id="fecha_firma"><?php echo date('d/m/Y'); ?></span></div>

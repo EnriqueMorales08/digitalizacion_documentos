@@ -183,7 +183,7 @@
   </div>
 
   <div class="signature-section">
-    <p><strong>Firma del Cliente:</strong> <input type="text" name="ACC_FIRMA_CLIENTE" class="medium"></p>
+    <p><strong>Firma del Cliente:</strong> <?php if (!empty($ordenCompraData['OC_CLIENTE_FIRMA'])): ?><img src="<?php echo htmlspecialchars($ordenCompraData['OC_CLIENTE_FIRMA']); ?>" style="max-width:200px; max-height:50px;"><?php else: ?><input type="text" name="ACC_FIRMA_CLIENTE" class="medium" value="Firma"><?php endif; ?></p>
     <p><strong>Nombre del Cliente:</strong> <input type="text" name="ACC_NOMBRE_FIRMA" class="medium" value="<?php echo htmlspecialchars($ordenCompraData['OC_COMPRADOR_NOMBRE'] ?? ''); ?>"></p>
     <p><strong>DNI:</strong> <input type="text" name="ACC_DNI_FIRMA" class="medium" value="<?php echo htmlspecialchars($ordenCompraData['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? ''); ?>"></p>
   </div>

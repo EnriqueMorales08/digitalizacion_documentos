@@ -168,6 +168,11 @@
 
         <!-- Firma -->
         <div class="signature-section">
+            <?php if (!empty($ordenCompraData['OC_CLIENTE_FIRMA'])): ?>
+            <img src="<?php echo htmlspecialchars($ordenCompraData['OC_CLIENTE_FIRMA']); ?>" style="max-width:280px; max-height:50px; display:block; margin:0 auto 5px auto;">
+            <?php else: ?>
+            <input type="text" name="ADP_FIRMA_CLIENTE" value="Firma" style="border: none; text-align: center; font-weight: bold; width: 280px; margin-bottom: 5px;">
+            <?php endif; ?>
             <div class="signature-line"></div>
             <div class="signature-label">FIRMA DEL TITULAR</div>
 

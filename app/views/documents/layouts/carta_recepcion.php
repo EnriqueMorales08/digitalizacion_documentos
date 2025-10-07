@@ -172,6 +172,11 @@
     
     <!-- Firma -->
     <div class="signature-section" style="margin-top: 20px">
+      <?php if (!empty($ordenCompraData['OC_CLIENTE_FIRMA'])): ?>
+      <img src="<?php echo htmlspecialchars($ordenCompraData['OC_CLIENTE_FIRMA']); ?>" style="max-width:300px; max-height:50px; display:block; margin:0 auto 5px auto;">
+      <?php else: ?>
+      <input type="text" name="CR_FIRMA_CLIENTE" value="Firma" style="border: none; text-align: center; font-weight: bold; width: 300px; margin-bottom: 5px;">
+      <?php endif; ?>
       <div class="signature-line"></div>
       <div class="signature-label">FIRMA Y DNI DEL CLIENTE</div>
     </div>
