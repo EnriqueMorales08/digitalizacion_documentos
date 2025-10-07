@@ -303,6 +303,38 @@ class Document {
                 }
                 sqlsrv_close($stockConn);
             }
+
+            // Consultar datos adicionales desde la API externa
+            $apiUrl = 'https://opensheet.elk.sh/1HmRbKs7uTGhd5vN99bb_f621AzncNGO8iFe5s6ITkM0/BD';
+            $apiData = @file_get_contents($apiUrl);
+            if ($apiData) {
+                $apiArray = json_decode($apiData, true);
+                if ($apiArray && is_array($apiArray)) {
+                    // Comparación exacta con normalización básica (trim y strtoupper)
+                    $marcaBD = trim(strtoupper($vehiculo['MARCA'] ?? ''));
+                    $modeloBD = trim(strtoupper($vehiculo['MODELO'] ?? ''));
+                    $versionBD = trim(strtoupper($vehiculo['VERSION'] ?? ''));
+                    $anioBD = trim($vehiculo['ANIO_FABRICACION'] ?? '');
+
+                    // Buscar coincidencia por MARCA, MODELO, VERSION, MODEL YEAR
+                    foreach ($apiArray as $item) {
+                        $marcaAPI = trim(strtoupper($item['MARCA'] ?? ''));
+                        $modeloAPI = trim(strtoupper($item['MODELO'] ?? ''));
+                        $versionAPI = trim(strtoupper($item['VERSION'] ?? ''));
+                        $anioAPI = trim($item['MODEL YEAR'] ?? '');
+
+                        if ($marcaBD === $marcaAPI &&
+                            $modeloBD === $modeloAPI &&
+                            $versionBD === $versionAPI &&
+                            $anioBD == $anioAPI) {
+                            $vehiculo['GARANTIA'] = $item['GARANTIA'] ?? '';
+                            $vehiculo['PERIODICIDAD'] = $item['PERIODICIDAD'] ?? '';
+                            $vehiculo['PRIMER_INGRESO'] = $item['1 INGRESO'] ?? '';
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         return $vehiculo;

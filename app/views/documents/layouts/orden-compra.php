@@ -860,6 +860,9 @@
                                     document.getElementsByName('OC_VEHICULO_MOTOR')[0].value = data.MOTOR || '';
                                     document.getElementsByName('OC_VEHICULO_CODIGO_FSC')[0].value = data.FSC || '';
                                     document.getElementsByName('OC_PRECIO_VENTA')[0].value = data.PRECIO || '';
+                                    document.getElementsByName('OC_PERIODO_GARANTIA')[0].value = data.GARANTIA || '';
+                                    document.getElementsByName('OC_PERIODICIDAD_MANTENIMIENTO')[0].value = data.PERIODICIDAD || '';
+                                    document.getElementsByName('OC_PRIMER_MANTENIMIENTO')[0].value = data.PRIMER_INGRESO || '';
                                 }
                             })
                             .catch(error => console.error('Error:', error));
