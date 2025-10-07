@@ -772,19 +772,51 @@
             }
         }
 
-        // Función para manejar bloqueo de bono de financiamiento
+        // Función para manejar bloqueo de bono de financiamiento y campos bancarios
         function manejarBonoFinanciamiento() {
             const formaPago = document.getElementsByName('OC_FORMA_PAGO')[0].value;
             const bonoMoneda = document.getElementsByName('OC_MONEDA_BONO_FINANCIAMIENTO')[0];
             const bonoInput = document.getElementsByName('OC_BONO_FINANCIAMIENTO')[0];
+            const entidadFinancieraSelect = document.getElementsByName('OC_ENTIDAD_FINANCIERA')[0];
+            const bancoAbonoSelect = document.getElementsByName('OC_BANCO_ABONO')[0];
+            const sectoristaInput = document.getElementsByName('OC_SECTORISTA_BANCO')[0];
+            const oficinaInput = document.getElementsByName('OC_OFICINA_BANCO')[0];
+            const telefonoSectorInput = document.getElementsByName('OC_TELEFONO_SECTORISTA')[0];
+            const monedaSaldoSelect = document.getElementsByName('OC_MONEDA_SALDO')[0];
 
             if (formaPago === 'CONTADO') {
                 bonoMoneda.disabled = true;
                 bonoInput.disabled = true;
                 bonoInput.value = '';
+                entidadFinancieraSelect.disabled = false;
+                bancoAbonoSelect.disabled = true;
+                sectoristaInput.disabled = true;
+                oficinaInput.disabled = true;
+                telefonoSectorInput.disabled = true;
+                bancoAbonoSelect.value = '';
+                sectoristaInput.value = '';
+                oficinaInput.value = '';
+                telefonoSectorInput.value = '';
+                monedaSaldoSelect.disabled = false;
+            } else if (formaPago === 'CRÉDITO') {
+                bonoMoneda.disabled = false;
+                bonoInput.disabled = false;
+                entidadFinancieraSelect.disabled = true;
+                entidadFinancieraSelect.value = '';
+                bancoAbonoSelect.disabled = false;
+                sectoristaInput.disabled = false;
+                oficinaInput.disabled = false;
+                telefonoSectorInput.disabled = false;
+                monedaSaldoSelect.disabled = false;
             } else {
                 bonoMoneda.disabled = false;
                 bonoInput.disabled = false;
+                entidadFinancieraSelect.disabled = false;
+                bancoAbonoSelect.disabled = false;
+                sectoristaInput.disabled = false;
+                oficinaInput.disabled = false;
+                telefonoSectorInput.disabled = false;
+                monedaSaldoSelect.disabled = false;
             }
         }
 
