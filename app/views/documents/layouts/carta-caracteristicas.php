@@ -149,6 +149,7 @@
     </a>
   </div>
 
+    <form method="POST" action="/digitalizacion-documentos/documents/guardar-documento" style="margin: 0; padding: 0;">
     <div class="page">
         <div class="header">
         <div class="logo-section">
@@ -164,7 +165,27 @@
     <div class="title">CARTA DE CARACTERÍSTICAS</div>
 
     <div class="date">
-        <input type="text" name="CC_FECHA_CARTA" value="Piura, 28 de Agosto de 2025" style="width: 300px;">
+        <?php
+        $fecha = $ordenCompraData['OC_FECHA_ORDEN'] ?? '';
+        if ($fecha) {
+            if ($fecha instanceof DateTime) {
+                $date = $fecha;
+            } else {
+                $date = new DateTime($fecha);
+            }
+            $meses = [
+                1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio',
+                7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+            ];
+            $dia = $date->format('d');
+            $mes = $meses[(int)$date->format('m')];
+            $anio = $date->format('Y');
+            $formatted = "Piura, $dia de $mes de $anio";
+        } else {
+            $formatted = "Piura, 28 de Agosto de 2025";
+        }
+        ?>
+        <input type="text" name="CC_FECHA_CARTA" value="<?php echo htmlspecialchars($formatted); ?>" style="width: 300px;">
     </div>
 
     <div class="recipient">
@@ -177,31 +198,31 @@
         <p><strong>Estimados Señores:</strong></p>
 
         <p>Mediante la presente, les informamos que nuestro mutuo cliente
-        <strong><input type="text" name="CC_CLIENTE_NOMBRE" value="<?php echo htmlspecialchars($ordenCompraData['OC_COMPRADOR_NOMBRE'] ?? ''); ?>" style="width: 350px;"></strong>
-        con <strong>DNI. <input type="text" name="CC_CLIENTE_DNI" value="<?php echo htmlspecialchars($ordenCompraData['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? ''); ?>" style="width: 100px;"></strong>
+        <strong><input type="text" name="CC_CLIENTE_NOMBRE" value="<?php echo htmlspecialchars($documentData['CC_CLIENTE_NOMBRE'] ?? $ordenCompraData['OC_COMPRADOR_NOMBRE'] ?? ''); ?>" style="width: 350px;"></strong>
+        con <strong>DNI. <input type="text" name="CC_CLIENTE_DNI" value="<?php echo htmlspecialchars($documentData['CC_CLIENTE_DNI'] ?? $ordenCompraData['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? ''); ?>" style="width: 100px;"></strong>
         ha obtenido el crédito vehicular por la siguiente unidad:</p>
     </div>
 
     <div class="vehicle-details">
         <div class="detail-row">
             <div class="detail-label">Marca</div>
-            <div class="detail-value">: <input type="text" name="CC_VEHICULO_MARCA" value="<?php echo htmlspecialchars($ordenCompraData['OC_VEHICULO_MARCA'] ?? ''); ?>"></div>
+            <div class="detail-value">: <input type="text" name="CC_VEHICULO_MARCA" value="<?php echo htmlspecialchars($documentData['CC_VEHICULO_MARCA'] ?? $ordenCompraData['OC_VEHICULO_MARCA'] ?? ''); ?>"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Modelo</div>
-            <div class="detail-value">: <input type="text" name="CC_VEHICULO_MODELO" value="<?php echo htmlspecialchars($ordenCompraData['OC_VEHICULO_MODELO'] ?? ''); ?>" style="width: 250px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_VEHICULO_MODELO" value="<?php echo htmlspecialchars($documentData['CC_VEHICULO_MODELO'] ?? $ordenCompraData['OC_VEHICULO_MODELO'] ?? ''); ?>" style="width: 250px;"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Año de Modelo</div>
-            <div class="detail-value">: <input type="text" name="CC_VEHICULO_ANIO_MODELO" value="<?php echo htmlspecialchars($ordenCompraData['OC_VEHICULO_ANIO_MODELO'] ?? ''); ?>" style="width: 100px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_VEHICULO_ANIO_MODELO" value="<?php echo htmlspecialchars($documentData['CC_VEHICULO_ANIO_MODELO'] ?? $ordenCompraData['OC_VEHICULO_ANIO_MODELO'] ?? ''); ?>" style="width: 100px;"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Número de Chasis</div>
-            <div class="detail-value">: <input type="text" name="CC_VEHICULO_CHASIS" value="<?php echo htmlspecialchars($ordenCompraData['OC_VEHICULO_CHASIS'] ?? ''); ?>" style="width: 250px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_VEHICULO_CHASIS" value="<?php echo htmlspecialchars($documentData['CC_VEHICULO_CHASIS'] ?? $ordenCompraData['OC_VEHICULO_CHASIS'] ?? ''); ?>" style="width: 250px;"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Número de Motor</div>
-            <div class="detail-value">: <input type="text" name="CC_VEHICULO_MOTOR" value="<?php echo htmlspecialchars($ordenCompraData['OC_VEHICULO_MOTOR'] ?? ''); ?>" style="width: 200px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_VEHICULO_MOTOR" value="<?php echo htmlspecialchars($documentData['CC_VEHICULO_MOTOR'] ?? $ordenCompraData['OC_VEHICULO_MOTOR'] ?? ''); ?>" style="width: 200px;"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Carrocería</div>
@@ -209,7 +230,7 @@
         </div>
         <div class="detail-row">
             <div class="detail-label">Color</div>
-            <div class="detail-value">: <input type="text" name="CC_VEHICULO_COLOR" value="<?php echo htmlspecialchars($ordenCompraData['OC_VEHICULO_COLOR'] ?? ''); ?>" style="width: 200px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_VEHICULO_COLOR" value="<?php echo htmlspecialchars($documentData['CC_VEHICULO_COLOR'] ?? $ordenCompraData['OC_VEHICULO_COLOR'] ?? ''); ?>" style="width: 200px;"></div>
         </div>
     </div>
 
@@ -217,7 +238,7 @@
         <h4>Valores:</h4>
         <div class="detail-row">
             <div class="detail-label">Precio del vehículo</div>
-            <div class="detail-value">: <input type="text" name="CC_PRECIO_VEHICULO" value="<?php echo htmlspecialchars(($ordenCompraData['OC_MONEDA_PRECIO_VENTA'] ?? '') . ' ' . ($ordenCompraData['OC_PRECIO_VENTA'] ?? '')); ?>" style="width: 150px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_PRECIO_VEHICULO" value="<?php echo htmlspecialchars(($documentData['CC_PRECIO_VEHICULO'] ?? ($ordenCompraData['OC_MONEDA_PRECIO_VENTA'] ?? '') . ' ' . ($ordenCompraData['OC_PRECIO_VENTA'] ?? ''))); ?>" style="width: 150px;"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Cuota inicial</div>
@@ -235,7 +256,7 @@
 
     <div class="commitment">
         Nos comprometemos a gestionar la tarjeta de Propiedad del vehículo a nombre de:
-        <strong><input type="text" name="CC_PROPIETARIO_TARJETA" value="<?php echo htmlspecialchars($ordenCompraData['OC_PROPIETARIO_NOMBRE'] ?? ''); ?>" style="width: 350px;"></strong>
+        <strong><input type="text" name="CC_PROPIETARIO_TARJETA" value="<?php echo htmlspecialchars($documentData['CC_PROPIETARIO_TARJETA'] ?? $ordenCompraData['OC_PROPIETARIO_NOMBRE'] ?? ''); ?>" style="width: 350px;"></strong>
     </div>
 
     <div class="content">
@@ -248,5 +269,15 @@
 
     <div class="footer-line"></div>
     </div>
+
+    <!-- Botón de guardar -->
+    <div style="width:794px; margin:20px auto; text-align:center;">
+        <input type="hidden" name="document_type" value="carta-caracteristicas">
+        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s ease;">
+            💾 GUARDAR CARTA DE CARACTERÍSTICAS
+        </button>
+    </div>
+
+    </form>
 </body>
 </html>

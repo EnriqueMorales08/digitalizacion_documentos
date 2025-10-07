@@ -56,6 +56,23 @@
             echo 'El documento ha sido procesado exitosamente.';
         }
         ?>
+        <?php if (isset($_GET['error'])): ?>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>❌ Error:</strong>
+            <?php
+            switch ($_GET['error']) {
+              case 'no_orden':
+                echo 'Primero debe guardar la orden de compra antes de acceder a otros documentos.';
+                break;
+              default:
+                echo htmlspecialchars($_GET['error']);
+            }
+            ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <?php endif; ?>
+        <?php
+        ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
     <?php endif; ?>

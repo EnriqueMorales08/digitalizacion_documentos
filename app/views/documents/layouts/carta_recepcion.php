@@ -127,6 +127,7 @@
     </a>
   </div>
 
+  <form method="POST" action="/digitalizacion-documentos/documents/guardar-documento" style="margin: 0; padding: 0;">
   <div class="page">
     <!-- Encabezado -->
     <div class="header">
@@ -174,6 +175,16 @@
       <div class="signature-line"></div>
       <div class="signature-label">FIRMA Y DNI DEL CLIENTE</div>
     </div>
+
+    <!-- Botón de guardar -->
+    <div style="width:794px; margin:20px auto; text-align:center;">
+        <input type="hidden" name="document_type" value="carta_recepcion">
+        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s ease;">
+            💾 GUARDAR CARTA DE RECEPCIÓN
+        </button>
+    </div>
+
+  </form>
   <script>
     // Función para ajustar el ancho del input según el texto
     function adjustInputWidth(input) {

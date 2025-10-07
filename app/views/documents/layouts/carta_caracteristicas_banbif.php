@@ -251,14 +251,31 @@
     </style>
 </head>
 <body>
+    <form method="POST" action="/digitalizacion-documentos/documents/guardar-documento" style="margin: 0; padding: 0;">
     <div class="document">
+        <?php
+        $fecha = $ordenCompraData['OC_FECHA_ORDEN'] ?? '';
+        if ($fecha) {
+            if ($fecha instanceof DateTime) {
+                $date = $fecha;
+            } else {
+                $date = new DateTime($fecha);
+            }
+            $meses = [
+                1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio',
+                7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+            ];
+            $dia = $date->format('d');
+            $mes = $meses[(int)$date->format('m')];
+            $anio = $date->format('Y');
+            $formatted = "Piura, $dia de $mes de $anio";
+        } else {
+            $formatted = "Piura, 28 de Agosto de 2025";
+        }
+        ?>
         <div class="header-field">
             <label>Fecha:</label>
-            <input type="text" class="date-input">
-            <span>de</span>
-            <input type="text" class="month-input">
-            <span>de</span>
-            <input type="text" class="year-input">
+            <input type="text" name="fecha_banbif" value="<?php echo htmlspecialchars($formatted); ?>" style="width: 300px;">
         </div>
         
         <div class="header-field">
@@ -280,17 +297,17 @@
         <div class="content">
             <p>De nuestra consideración:</p>
             <p>Por medio de la presente, en virtud del financiamiento otorgado a:</p>
-            <input type="text" style="width: 100%; border: 1px solid #333; padding: 8px; margin: 10px 0 20px 0; font-size: 14px;">
-            
+            <input type="text" value="<?php echo htmlspecialchars($documentData['CCB_CLIENTE_NOMBRE'] ?? $ordenCompraData['OC_COMPRADOR_NOMBRE'] ?? ''); ?>" style="width: 100%; border: 1px solid #333; padding: 8px; margin: 10px 0 20px 0; font-size: 14px;">
+
             <p>para la adquisición del vehículo que se describe en el presente documento, dejamos constancia expresa de nuestro compromiso irrevocable e incondicional de poder entregar en un plazo no mayor de 20 días útiles de haber cancelado el precio de venta, los siguientes documentos a sola solicitud de BanBif. Además, informaré oportunamente a BanBif cualquier suceso que pueda demorar la entrega.</p>
-            
+
             <div class="list-items">
                 <p>a) Copia de la factura cancelada,</p>
                 <p>b) Copia de la tarjeta de propiedad del vehículo materia de compra/venta.</p>
             </div>
-            
+
             <p>De acuerdo a lo coordinado con nuestro cliente y BanBif, les confirmamos que la factura y la tarjeta de propiedad serán emitidas a nombre de:</p>
-            <input type="text" style="width: 100%; border: 1px solid #333; padding: 8px; margin: 10px 0 20px 0; font-size: 14px;">
+            <input type="text" value="<?php echo htmlspecialchars($documentData['CCB_PROPIETARIO_TARJETA'] ?? $ordenCompraData['OC_PROPIETARIO_NOMBRE'] ?? ''); ?>" style="width: 100%; border: 1px solid #333; padding: 8px; margin: 10px 0 20px 0; font-size: 14px;">
             
             <p>Asimismo, en caso de que luego de la inmatriculación se den variaciones en los titulares registrales del vehículo, nos comprometemos a regularizar según como se indica en la presente carta o dar aviso a BanBif y al cliente para las regularizaciones correspondientes.</p>
             
@@ -300,27 +317,27 @@
         <table class="vehicle-table">
             <tr>
                 <td class="label-cell">Marca:</td>
-                <td class="input-cell"><input type="text"></td>
+                <td class="input-cell"><input type="text" value="<?php echo htmlspecialchars($documentData['CCB_VEHICULO_MARCA'] ?? $ordenCompraData['OC_VEHICULO_MARCA'] ?? ''); ?>"></td>
                 <td class="label-cell">Color:</td>
-                <td class="input-cell"><input type="text"></td>
+                <td class="input-cell"><input type="text" value="<?php echo htmlspecialchars($documentData['CCB_VEHICULO_COLOR'] ?? $ordenCompraData['OC_VEHICULO_COLOR'] ?? ''); ?>"></td>
             </tr>
             <tr>
                 <td class="label-cell">Modelo:</td>
-                <td class="input-cell"><input type="text"></td>
+                <td class="input-cell"><input type="text" value="<?php echo htmlspecialchars($documentData['CCB_VEHICULO_MODELO'] ?? $ordenCompraData['OC_VEHICULO_MODELO'] ?? ''); ?>"></td>
                 <td class="label-cell">Clase:</td>
-                <td class="input-cell"><input type="text"></td>
+                <td class="input-cell"><input type="text" value="<?php echo htmlspecialchars($documentData['CCB_VEHICULO_CLASE'] ?? $ordenCompraData['OC_VEHICULO_CLASE'] ?? ''); ?>"></td>
             </tr>
             <tr>
                 <td class="label-cell">Año de modelo:</td>
-                <td class="input-cell"><input type="text"></td>
+                <td class="input-cell"><input type="text" value="<?php echo htmlspecialchars($documentData['CCB_VEHICULO_ANIO_MODELO'] ?? $ordenCompraData['OC_VEHICULO_ANIO_MODELO'] ?? ''); ?>"></td>
                 <td class="label-cell">N°. De motor:</td>
-                <td class="input-cell"><input type="text"></td>
+                <td class="input-cell"><input type="text" value="<?php echo htmlspecialchars($documentData['CCB_VEHICULO_MOTOR'] ?? $ordenCompraData['OC_VEHICULO_MOTOR'] ?? ''); ?>"></td>
             </tr>
             <tr>
                 <td class="label-cell">Tipo de carrocería:</td>
                 <td class="input-cell"><input type="text"></td>
                 <td class="label-cell">N°. De serie:</td>
-                <td class="input-cell"><input type="text"></td>
+                <td class="input-cell"><input type="text" value="<?php echo htmlspecialchars($documentData['CCB_VEHICULO_CHASIS'] ?? $ordenCompraData['OC_VEHICULO_CHASIS'] ?? ''); ?>"></td>
             </tr>
         </table>
         
@@ -376,5 +393,15 @@
             </div>
         </div>
     </div>
+
+    <!-- Botón de guardar -->
+    <div style="width:850px; margin:20px auto; text-align:center;">
+        <input type="hidden" name="document_type" value="carta_caracteristicas_banbif">
+        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s ease;">
+            💾 GUARDAR CARTA DE CARACTERÍSTICAS BANBIF
+        </button>
+    </div>
+
+    </form>
 </body>
 </html>

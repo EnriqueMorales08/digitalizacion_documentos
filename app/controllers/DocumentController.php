@@ -40,7 +40,7 @@ class DocumentController {
         }
 
         $id = $_GET['id'];
-        $ordenId = $_SESSION['orden_id'] ?? null;
+        $ordenId = $_SESSION['orden_id'] ?? $_COOKIE['orden_id'] ?? null;
 
         // Cargar datos de la orden de compra
         $ordenCompraData = [];
@@ -54,12 +54,24 @@ class DocumentController {
             $documentData = $this->documentModel->getDocumentData($id, $ordenId);
         }
 
+        // Los datos se pre-llenan desde $ordenCompraData
+
+        // Cargar datos del vehículo para documentos que lo necesiten
+        $vehiculoData = [];
+        if ($ordenId && in_array($id, ['carta-caracteristicas', 'carta_caracteristicas_banbif'])) {
+            $chasis = $ordenCompraData['OC_VEHICULO_CHASIS'] ?? '';
+            if ($chasis) {
+                $vehiculoData = $this->documentModel->buscarVehiculoPorChasis($chasis);
+            }
+        }
+
         // Obtener lista de bancos
         $bancos = $this->documentModel->getBancos();
 
         // Hacer disponibles las variables en la vista
         $ordenCompraData = $ordenCompraData;
         $documentData = $documentData;
+        $vehiculoData = $vehiculoData;
         $bancos = $bancos;
 
         require __DIR__ . '/../views/documents/layouts/' . $id . '.php';
@@ -75,6 +87,9 @@ class DocumentController {
                 $_SESSION['orden_guardada'] = true;
                 $_SESSION['forma_pago'] = $_POST['OC_FORMA_PAGO'] ?? null;
                 $_SESSION['orden_id'] = $resultado['id'];
+
+                // También en cookie por si la sesión se pierde
+                setcookie('orden_id', $resultado['id'], time() + 3600, '/'); // 1 hora
 
                 header("Location: /digitalizacion-documentos/documents?success=orden_compra");
                 exit;
@@ -105,6 +120,29 @@ class DocumentController {
             header('Content-Type: application/json');
             echo json_encode(['success' => $firma !== null, 'firma' => $firma]);
             exit;
+        }
+    }
+
+    // Guardar documento individual
+    public function guardarDocumento() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $documentType = $_POST['document_type'] ?? '';
+            $ordenId = $_SESSION['orden_id'] ?? null;
+
+            if (!$ordenId) {
+                header("Location: /digitalizacion-documentos/documents?error=no_orden");
+                exit;
+            }
+
+            $resultado = $this->documentModel->guardarDocumentoIndividual($documentType, $_POST, $ordenId);
+
+            if ($resultado['success']) {
+                header("Location: /digitalizacion-documentos/documents/show?id=$documentType&success=guardado");
+                exit;
+            } else {
+                header("Location: /digitalizacion-documentos/documents/show?id=$documentType&error=" . urlencode($resultado['error']));
+                exit;
+            }
         }
     }
 }

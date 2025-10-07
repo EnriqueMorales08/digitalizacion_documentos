@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../app/controllers/DocumentController.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -35,6 +36,10 @@ if ($uri === '/' || $uri === ''
 // VERIFICAR FIRMA
 } elseif ($method === 'POST' && ($uri === '/documents/verificar-firma' || $uri === '/digitalizacion-documentos/documents/verificar-firma')) {
     $controller->verificarFirma();
+
+// GUARDAR DOCUMENTO INDIVIDUAL
+} elseif ($method === 'POST' && ($uri === '/documents/guardar-documento' || $uri === '/digitalizacion-documentos/documents/guardar-documento')) {
+    $controller->guardarDocumento();
 
 // ACTA CONOCIMIENTO CONFORMIDAD
 } elseif ($method === 'POST' && ($uri === '/documents/procesar-acta-conformidad' || $uri === '/digitalizacion-documentos/documents/procesar-acta-conformidad')) {
