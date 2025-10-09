@@ -12,9 +12,10 @@ class DocumentController {
     public function index() {
         // 🚨 Aquí definimos las variables para que no estén undefined
         $orden_guardada = isset($_SESSION['orden_guardada']) && $_SESSION['orden_guardada'] === true;
-        $forma_pago = $_SESSION['forma_pago'] ?? null;
+        $forma_pago = trim($_SESSION['forma_pago'] ?? '');
+        $banco_abono = trim($_SESSION['banco_abono'] ?? '');
 
-        // Lista de documentos que se mostrarán en el panel
+        // Lista de documentos base (siempre visibles)
         $documents = [
             ['id' => 'orden-compra', 'title' => 'Orden de Compra'],
             ['id' => 'acta-conocimiento-conformidad', 'title' => 'Acta Conocimiento Conformidad'],
@@ -22,11 +23,20 @@ class DocumentController {
             ['id' => 'carta_conocimiento_aceptacion', 'title' => 'Carta Conocimiento Aceptación'],
             ['id' => 'carta_felicitaciones', 'title' => 'Carta Felicitaciones'],
             ['id' => 'carta_recepcion', 'title' => 'Carta Recepción'],
-            ['id' => 'carta-caracteristicas', 'title' => 'Carta Características'],
-            ['id' => 'carta_caracteristicas_banbif', 'title' => 'Carta Características Banbif'],
             ['id' => 'carta_obsequios', 'title' => 'Carta Obsequios'],
             ['id' => 'politica_proteccion_datos', 'title' => 'Política de Protección de Datos'],
         ];
+
+        // 🎯 Agregar cartas de características solo si forma de pago es CRÉDITO
+        if ($forma_pago === 'CRÉDITO') {
+            if ($banco_abono === 'Banco Interamericano de Finanzas') {
+                // Solo mostrar Carta Características Banbif
+                $documents[] = ['id' => 'carta_caracteristicas_banbif', 'title' => 'Carta Características Banbif'];
+            } else {
+                // Mostrar Carta Características Normal
+                $documents[] = ['id' => 'carta-caracteristicas', 'title' => 'Carta Características'];
+            }
+        }
 
         // Hacemos disponibles las variables en la vista
         require __DIR__ . '/../views/documents/index.php';
@@ -40,7 +50,29 @@ class DocumentController {
         }
 
         $id = $_GET['id'];
-        $ordenId = $_SESSION['orden_id'] ?? $_COOKIE['orden_id'] ?? null;
+        $ordenId = $_SESSION['orden_id'] ?? null;
+        $forma_pago = trim($_SESSION['forma_pago'] ?? '');
+        $banco_abono = trim($_SESSION['banco_abono'] ?? '');
+
+        // 🔒 Validar acceso a cartas de características según condiciones
+        if (in_array($id, ['carta-caracteristicas', 'carta_caracteristicas_banbif'])) {
+            // Solo permitir acceso si forma de pago es CRÉDITO
+            if ($forma_pago !== 'CRÉDITO') {
+                header("Location: /digitalizacion-documentos/documents?error=" . urlencode('Las cartas de características solo están disponibles para compras a CRÉDITO'));
+                exit;
+            }
+
+            // Validar que se acceda a la carta correcta según el banco
+            if ($id === 'carta_caracteristicas_banbif' && $banco_abono !== 'Banco Interamericano de Finanzas') {
+                header("Location: /digitalizacion-documentos/documents?error=" . urlencode('Esta carta solo está disponible para Banco Interamericano de Finanzas'));
+                exit;
+            }
+
+            if ($id === 'carta-caracteristicas' && $banco_abono === 'Banco Interamericano de Finanzas') {
+                header("Location: /digitalizacion-documentos/documents?error=" . urlencode('Para Banco Interamericano de Finanzas debe usar la Carta Características Banbif'));
+                exit;
+            }
+        }
 
         // Cargar datos de la orden de compra
         $ordenCompraData = [];
@@ -86,10 +118,11 @@ class DocumentController {
                 // Guardamos en sesión que la orden está registrada
                 $_SESSION['orden_guardada'] = true;
                 $_SESSION['forma_pago'] = $_POST['OC_FORMA_PAGO'] ?? null;
+                $_SESSION['banco_abono'] = $_POST['OC_BANCO_ABONO'] ?? null;
                 $_SESSION['orden_id'] = $resultado['id'];
 
-                // También en cookie por si la sesión se pierde
-                setcookie('orden_id', $resultado['id'], time() + 3600, '/'); // 1 hora
+                // Comentado: no usar cookie para evitar persistencia de firmas entre sesiones
+                // setcookie('orden_id', $resultado['id'], time() + 3600, '/'); // 1 hora
 
                 header("Location: /digitalizacion-documentos/documents?success=orden_compra");
                 exit;

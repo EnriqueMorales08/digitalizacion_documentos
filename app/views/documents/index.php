@@ -92,15 +92,15 @@
        <p>Bienvenido, <strong><?= htmlspecialchars($user) ?></strong></p>
        <?php if (!$orden_guardada): ?>
            <div class="alert alert-warning mt-3">
-               <strong>Primero debe llenar y guardar la Orden de Compra.</strong> Los demás documentos estarán disponibles después.
+               <strong>⚠️ Primero debe llenar y guardar la Orden de Compra.</strong> Los demás documentos estarán disponibles después.
            </div>
        <?php elseif (isset($forma_pago)): ?>
            <div class="alert alert-info mt-3">
-               <strong>Orden de Compra guardada.</strong>
+               <strong>✅ Orden de Compra guardada.</strong> Forma de pago: <strong><?= htmlspecialchars($forma_pago) ?></strong>
                <?php if ($forma_pago === 'CRÉDITO'): ?>
-                   Se requiere llenar la <strong>Carta de Características</strong> para compras a crédito.
+                   <br>📋 Se habilitó la carta de características correspondiente según el banco seleccionado.
                <?php elseif ($forma_pago === 'CONTADO'): ?>
-                   Para compras al contado, se genera la Factura (no disponible en este panel).
+                   <br>💰 Para compras al contado no se requieren cartas de características.
                <?php endif; ?>
            </div>
        <?php endif; ?>
