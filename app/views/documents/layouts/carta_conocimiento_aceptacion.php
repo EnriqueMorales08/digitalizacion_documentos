@@ -78,6 +78,7 @@
 </style>
 </head>
 <body>
+  <form method="POST" action="/digitalizacion-documentos/documents/guardar-documento">
   <!-- Flecha de regreso -->
   <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
     <a href="/digitalizacion-documentos/documents" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); font-family: Arial, sans-serif; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
@@ -148,5 +149,52 @@
       });
     });
   </script>
+
+  <!-- Campos ocultos para guardar datos -->
+  <input type="hidden" name="CCA_CLIENTE_NOMBRE_COMPLETO" id="hidden_cliente_nombre_completo">
+  <input type="hidden" name="CCA_CLIENTE_DOCUMENTO" id="hidden_cliente_documento">
+  <input type="hidden" name="CCA_VEHICULO_MARCA" id="hidden_vehiculo_marca">
+  <input type="hidden" name="CCA_VEHICULO_MODELO" id="hidden_vehiculo_modelo">
+  <input type="hidden" name="CCA_VEHICULO_ANIO" id="hidden_vehiculo_anio">
+  <input type="hidden" name="CCA_VEHICULO_VIN" id="hidden_vehiculo_vin">
+  <input type="hidden" name="CCA_FIRMA_CLIENTE" id="hidden_firma_cliente">
+  <input type="hidden" name="CCA_NOMBRE_FIRMA" id="hidden_nombre_firma">
+  <input type="hidden" name="CCA_DOCUMENTO_FIRMA" id="hidden_documento_firma">
+  <input type="hidden" name="CCA_FECHA_FIRMA" id="hidden_fecha_firma">
+
+  <!-- Botón de guardar -->
+  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" class="no-print">
+    <input type="hidden" name="document_type" value="carta_conocimiento_aceptacion">
+    <button type="submit" onclick="return copiarDatosAntesDeGuardar(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5); transition: all 0.3s ease;">
+        💾 GUARDAR
+    </button>
+  </div>
+  
+  <script>
+    function copiarDatosAntesDeGuardar(event) {
+      // Copiar valores de contenteditable a campos ocultos
+      document.getElementById('hidden_cliente_nombre_completo').value = document.getElementById('cliente_nombre_completo').textContent;
+      document.getElementById('hidden_cliente_documento').value = document.getElementById('cliente_documento').textContent;
+      document.getElementById('hidden_vehiculo_marca').value = document.getElementById('vehiculo_marca').textContent;
+      document.getElementById('hidden_vehiculo_modelo').value = document.getElementById('vehiculo_modelo').textContent;
+      document.getElementById('hidden_vehiculo_anio').value = document.getElementById('vehiculo_anio').textContent;
+      document.getElementById('hidden_vehiculo_vin').value = document.getElementById('vehiculo_vin').textContent;
+      document.getElementById('hidden_firma_cliente').value = document.getElementById('firma_cliente').innerHTML;
+      document.getElementById('hidden_nombre_firma').value = document.getElementById('nombre_firma').textContent;
+      document.getElementById('hidden_documento_firma').value = document.getElementById('documento_firma').textContent;
+      document.getElementById('hidden_fecha_firma').value = document.getElementById('fecha_firma').textContent;
+      
+      // Permitir que el formulario se envíe
+      return true;
+    }
+  </script>
+  </form>
+  <style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+  </style>
 </body>
 </html>

@@ -246,18 +246,29 @@
             margin-left: auto;
             padding-top: 5px;
             text-align: center;
-            font-size: 14px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
+    <!-- Flecha de regreso -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;" class="no-print">
+        <a href="/digitalizacion-documentos/documents" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); font-family: Arial, sans-serif; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Regresar
+        </a>
+    </div>
+
     <form method="POST" action="/digitalizacion-documentos/documents/guardar-documento" style="margin: 0; padding: 0;">
     <div class="document">
         <?php
-        $fecha = $ordenCompraData['OC_FECHA_ORDEN'] ?? '';
+        // Formatear fecha
+        $fecha = $ordenCompraData['OC_FECHA_ORDEN'] ?? date('Y-m-d');
         if ($fecha) {
-            if ($fecha instanceof DateTime) {
-                $date = $fecha;
+            if (is_string($fecha)) {
+                $date = new DateTime($fecha);
             } else {
                 $date = new DateTime($fecha);
             }
@@ -395,13 +406,20 @@
     </div>
 
     <!-- Botón de guardar -->
-    <div style="width:850px; margin:20px auto; text-align:center;">
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" class="no-print">
         <input type="hidden" name="document_type" value="carta_caracteristicas_banbif">
-        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s ease;">
-            💾 GUARDAR CARTA DE CARACTERÍSTICAS BANBIF
+        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5); transition: all 0.3s ease;">
+            💾 GUARDAR
         </button>
     </div>
 
     </form>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
 </body>
 </html>

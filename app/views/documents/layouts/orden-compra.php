@@ -46,10 +46,32 @@
     @media print {
         body {
             background: #fff;
+            padding: 0;
+            margin: 0;
         }
 
         .page {
             box-shadow: none;
+            border-radius: 0;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .form-container {
+            border: 1px solid #000;
+            page-break-inside: avoid;
+        }
+
+        input, select, textarea {
+            border: none !important;
+            background: transparent !important;
+        }
+
+        @page {
+            size: A4;
+            margin: 10mm;
         }
     }
 
@@ -1100,6 +1122,25 @@
             }
         });
     </script>
+
+    <!-- Cargar datos de sesión si existen -->
+    <script>
+        const ordenData = <?= isset($_SESSION['orden_data']) ? json_encode($_SESSION['orden_data']) : 'null' ?>;
+        const firmasData = <?= isset($_SESSION['firmas']) ? json_encode($_SESSION['firmas']) : 'null' ?>;
+        
+        // Cargar firmas si existen
+        if (firmasData) {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (firmasData.OC_ASESOR_FIRMA) document.getElementById('asesor_firma_hidden').value = firmasData.OC_ASESOR_FIRMA;
+                if (firmasData.OC_CLIENTE_FIRMA) document.getElementById('cliente_firma_hidden').value = firmasData.OC_CLIENTE_FIRMA;
+                if (firmasData.OC_CLIENTE_HUELLA) document.getElementById('cliente_huella_hidden').value = firmasData.OC_CLIENTE_HUELLA;
+                if (firmasData.OC_JEFE_FIRMA) document.getElementById('jefe_firma_hidden').value = firmasData.OC_JEFE_FIRMA;
+                if (firmasData.OC_JEFE_HUELLA) document.getElementById('jefe_huella_hidden').value = firmasData.OC_JEFE_HUELLA;
+                if (firmasData.OC_VISTO_ADV) document.getElementById('visto_adv_hidden').value = firmasData.OC_VISTO_ADV;
+            });
+        }
+    </script>
+    <script src="/digitalizacion-documentos/public/js/cargar_datos_sesion.js"></script>
 
     <!-- Campos ocultos para firmas -->
     <input type="hidden" name="OC_ASESOR_FIRMA" id="asesor_firma_hidden">

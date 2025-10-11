@@ -271,10 +271,10 @@
     </div>
 
     <!-- Botón de guardar -->
-    <div style="width:794px; margin:20px auto; text-align:center;">
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" class="no-print">
         <input type="hidden" name="document_type" value="carta-caracteristicas">
-        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s ease;">
-            💾 GUARDAR CARTA DE CARACTERÍSTICAS
+        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5); transition: all 0.3s ease;">
+            💾 GUARDAR
         </button>
     </div>
 

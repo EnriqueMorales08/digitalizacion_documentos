@@ -33,8 +33,56 @@ class Document {
         return null;
     }
 
+    /**
+     * Genera el siguiente número de expediente directamente en PHP
+     * Formato: YYYYMM0001 (se reinicia cada mes)
+     */
+    private function generarNumeroExpediente() {
+        try {
+            // Obtener año y mes actual (YYYYMM)
+            $anioMes = date('Ym'); // Ejemplo: 202510
+            
+            // Buscar el último número del mes actual con bloqueo
+            $sql = "SELECT TOP 1 OC_NUMERO_EXPEDIENTE 
+                    FROM SIST_ORDEN_COMPRA WITH (UPDLOCK, HOLDLOCK)
+                    WHERE OC_NUMERO_EXPEDIENTE LIKE ? 
+                    AND LEN(OC_NUMERO_EXPEDIENTE) = 10
+                    ORDER BY OC_NUMERO_EXPEDIENTE DESC";
+            
+            $params = [$anioMes . '%'];
+            $result = sqlsrv_query($this->conn, $sql, $params);
+            
+            if (!$result) {
+                throw new Exception("Error al buscar último expediente: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+            
+            if ($row && isset($row['OC_NUMERO_EXPEDIENTE'])) {
+                // Extraer los últimos 4 dígitos y sumar 1
+                $ultimoNumero = (int)substr($row['OC_NUMERO_EXPEDIENTE'], -4);
+                $siguienteNumero = $ultimoNumero + 1;
+            } else {
+                // No hay registros este mes, empezar desde 1
+                $siguienteNumero = 1;
+            }
+            
+            // Formatear con ceros a la izquierda (4 dígitos)
+            $numeroExpediente = $anioMes . str_pad($siguienteNumero, 4, '0', STR_PAD_LEFT);
+            
+            return $numeroExpediente;
+            
+        } catch (Exception $e) {
+            error_log("Error en generarNumeroExpediente: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function guardarOrdenCompra($data, $files = []) {
         try {
+            // 🎯 GENERAR NÚMERO DE EXPEDIENTE AUTOMÁTICAMENTE
+            $numeroExpediente = $this->generarNumeroExpediente();
+            
             // Procesar archivos primero
             $archivos = [];
             if (!empty($files)) {
@@ -54,6 +102,9 @@ class Document {
                 }
             }
 
+            // Agregar el número de expediente generado a los datos
+            $data['OC_NUMERO_EXPEDIENTE'] = $numeroExpediente;
+            
             // Filtrar solo campos OC_ y truncar si es necesario
             $fields = [];
             $placeholders = [];
@@ -127,8 +178,10 @@ class Document {
             }
             $id = $row['OC_ID'];
 
+            // Guardar el número de expediente en la sesión
+            $_SESSION['numero_expediente'] = $numeroExpediente;
 
-            return ['success' => true, 'id' => $id];
+            return ['success' => true, 'id' => $id, 'numero_expediente' => $numeroExpediente];
         } catch (Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
@@ -293,35 +346,91 @@ class Document {
 
     public function guardarDocumentoIndividual($documentType, $data, $ordenId) {
         try {
+            // Mapeo de tipos de documento a tablas y prefijos
             $tableMap = [
-                'carta-caracteristicas' => 'SIST_CARTA_CARACTERISTICAS',
-                'carta_caracteristicas_banbif' => 'SIST_CARTA_CARACTERISTICAS_BANBIF',
-                'carta_felicitaciones' => 'SIST_CARTA_FELICITACIONES',
-                'carta_recepcion' => 'SIST_CARTA_RECEPCION',
-                // Agregar otros documentos aquí
+                'acta-conocimiento-conformidad' => [
+                    'table' => 'SIST_ACTA_CONOCIMIENTO_CONFORMIDAD',
+                    'prefix' => 'ACC_',
+                    'fk' => 'ACC_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'ACC_FECHA_CREACION'
+                ],
+                'actorizacion-datos-personales' => [
+                    'table' => 'SIST_AUTORIZACION_DATOS_PERSONALES',
+                    'prefix' => 'ADP_',
+                    'fk' => 'ADP_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'ADP_FECHA_CREACION'
+                ],
+                'carta_conocimiento_aceptacion' => [
+                    'table' => 'SIST_CARTA_CONOCIMIENTO_ACEPTACION',
+                    'prefix' => 'CCA_',
+                    'fk' => 'CCA_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'CCA_FECHA_CREACION'
+                ],
+                'carta_recepcion' => [
+                    'table' => 'SIST_CARTA_RECEPCION',
+                    'prefix' => 'CR_',
+                    'fk' => 'CR_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'CR_FECHA_CREACION'
+                ],
+                'carta-caracteristicas' => [
+                    'table' => 'SIST_CARTA_CARACTERISTICAS',
+                    'prefix' => 'CC_',
+                    'fk' => 'CC_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'CC_FECHA_CREACION'
+                ],
+                'carta_caracteristicas_banbif' => [
+                    'table' => 'SIST_CARTA_CARACTERISTICAS_BANBIF',
+                    'prefix' => 'CCB_',
+                    'fk' => 'CCB_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'CCB_FECHA_CREACION'
+                ],
+                'carta_felicitaciones' => [
+                    'table' => 'SIST_CARTA_FELICITACIONES',
+                    'prefix' => 'CF_',
+                    'fk' => 'CF_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'CF_FECHA_CREACION'
+                ],
+                'carta_obsequios' => [
+                    'table' => 'SIST_CARTA_OBSEQUIOS',
+                    'prefix' => 'CO_',
+                    'fk' => 'CO_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'CO_FECHA_CREACION'
+                ],
+                'politica_proteccion_datos' => [
+                    'table' => 'SIST_POLITICA_PROTECCION_DATOS',
+                    'prefix' => 'PPD_',
+                    'fk' => 'PPD_DOCUMENTO_VENTA_ID',
+                    'fecha' => 'PPD_FECHA_CREACION'
+                ]
             ];
 
             if (!isset($tableMap[$documentType])) {
-                throw new Exception("Tipo de documento no válido");
+                throw new Exception("Tipo de documento no válido: $documentType");
             }
 
-            $table = $tableMap[$documentType];
+            $config = $tableMap[$documentType];
+            $table = $config['table'];
+            $prefix = $config['prefix'];
+            $fkField = $config['fk'];
+            $fechaField = $config['fecha'];
+            
             $fields = [];
             $placeholders = [];
             $values = [];
 
-            // Agregar OC_ID
-            $fields[] = 'CC_DOCUMENTO_VENTA_ID';
+            // Agregar OC_ID (clave foránea)
+            $fields[] = $fkField;
             $placeholders[] = '?';
             $values[] = $ordenId;
 
             // Agregar fecha de creación
-            $fields[] = 'CC_FECHA_CREACION';
+            $fields[] = $fechaField;
             $placeholders[] = '?';
             $values[] = date('Y-m-d H:i:s');
 
+            // Agregar los demás campos del formulario
             foreach ($data as $key => $value) {
-                if (strpos($key, 'CC_') === 0 && $key !== 'CC_DOCUMENTO_VENTA_ID' && $key !== 'CC_FECHA_CREACION') {
+                if (strpos($key, $prefix) === 0 && $key !== $fkField && $key !== $fechaField) {
                     $fields[] = $key;
                     $placeholders[] = '?';
                     $values[] = $value !== '' ? $value : null;
@@ -341,6 +450,128 @@ class Document {
             return ['success' => true];
         } catch (Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Buscar orden de compra por número de expediente
+     */
+    public function buscarPorNumeroExpediente($numeroExpediente) {
+        try {
+            $sql = "SELECT * FROM SIST_ORDEN_COMPRA WHERE OC_NUMERO_EXPEDIENTE = ?";
+            $result = sqlsrv_query($this->conn, $sql, [$numeroExpediente]);
+            
+            if (!$result) {
+                error_log("Error en buscarPorNumeroExpediente: " . print_r(sqlsrv_errors(), true));
+                return null;
+            }
+            
+            $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+            return $row ?: null;
+        } catch (Exception $e) {
+            error_log("Excepción en buscarPorNumeroExpediente: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Listar todas las órdenes de compra con paginación
+     */
+    public function listarOrdenesCompra($page = 1, $perPage = 20, $search = '') {
+        try {
+            $offset = ($page - 1) * $perPage;
+            
+            $whereClause = '';
+            $params = [];
+            
+            if (!empty($search)) {
+                $whereClause = "WHERE OC_NUMERO_EXPEDIENTE LIKE ? OR OC_COMPRADOR_NOMBRE LIKE ? OR OC_COMPRADOR_NUMERO_DOCUMENTO LIKE ?";
+                $searchParam = '%' . $search . '%';
+                $params = [$searchParam, $searchParam, $searchParam];
+            }
+            
+            // Contar total de registros
+            $sqlCount = "SELECT COUNT(*) as total FROM SIST_ORDEN_COMPRA $whereClause";
+            $resultCount = sqlsrv_query($this->conn, $sqlCount, $params);
+            $rowCount = sqlsrv_fetch_array($resultCount, SQLSRV_FETCH_ASSOC);
+            $total = $rowCount['total'];
+            
+            // Obtener registros paginados
+            $sql = "SELECT OC_ID, OC_NUMERO_EXPEDIENTE, OC_COMPRADOR_NOMBRE, OC_COMPRADOR_NUMERO_DOCUMENTO, 
+                           OC_VEHICULO_MARCA, OC_VEHICULO_MODELO, OC_FECHA_ORDEN, OC_FECHA_CREACION
+                    FROM SIST_ORDEN_COMPRA 
+                    $whereClause
+                    ORDER BY OC_FECHA_CREACION DESC
+                    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            
+            $params[] = $offset;
+            $params[] = $perPage;
+            
+            $result = sqlsrv_query($this->conn, $sql, $params);
+            
+            if (!$result) {
+                error_log("Error en listarOrdenesCompra: " . print_r(sqlsrv_errors(), true));
+                return ['data' => [], 'total' => 0, 'pages' => 0];
+            }
+            
+            $ordenes = [];
+            while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+                $ordenes[] = $row;
+            }
+            
+            return [
+                'data' => $ordenes,
+                'total' => $total,
+                'pages' => ceil($total / $perPage),
+                'current_page' => $page
+            ];
+        } catch (Exception $e) {
+            error_log("Excepción en listarOrdenesCompra: " . $e->getMessage());
+            return ['data' => [], 'total' => 0, 'pages' => 0];
+        }
+    }
+
+    /**
+     * Obtener todos los documentos asociados a una orden de compra
+     */
+    public function getDocumentosPorOrden($ordenId) {
+        try {
+            $documentos = [];
+            
+            // Mapeo de tablas y sus campos de ID
+            $tablas = [
+                'SIST_ACTA_CONOCIMIENTO_CONFORMIDAD' => ['id_field' => 'ACC_ID', 'fk_field' => 'ACC_DOCUMENTO_VENTA_ID', 'nombre' => 'Acta Conocimiento Conformidad'],
+                'SIST_AUTORIZACION_DATOS_PERSONALES' => ['id_field' => 'ADP_ID', 'fk_field' => 'ADP_DOCUMENTO_VENTA_ID', 'nombre' => 'Autorización Datos Personales'],
+                'SIST_CARTA_CONOCIMIENTO_ACEPTACION' => ['id_field' => 'CCA_ID', 'fk_field' => 'CCA_DOCUMENTO_VENTA_ID', 'nombre' => 'Carta Conocimiento Aceptación'],
+                'SIST_CARTA_RECEPCION' => ['id_field' => 'CR_ID', 'fk_field' => 'CR_DOCUMENTO_VENTA_ID', 'nombre' => 'Carta Recepción'],
+                'SIST_CARTA_CARACTERISTICAS' => ['id_field' => 'CC_ID', 'fk_field' => 'CC_DOCUMENTO_VENTA_ID', 'nombre' => 'Carta Características'],
+                'SIST_CARTA_CARACTERISTICAS_BANBIF' => ['id_field' => 'CCB_ID', 'fk_field' => 'CCB_DOCUMENTO_VENTA_ID', 'nombre' => 'Carta Características Banbif'],
+                'SIST_CARTA_FELICITACIONES' => ['id_field' => 'CF_ID', 'fk_field' => 'CF_DOCUMENTO_VENTA_ID', 'nombre' => 'Carta Felicitaciones'],
+                'SIST_CARTA_OBSEQUIOS' => ['id_field' => 'CO_ID', 'fk_field' => 'CO_DOCUMENTO_VENTA_ID', 'nombre' => 'Carta Obsequios'],
+                'SIST_POLITICA_PROTECCION_DATOS' => ['id_field' => 'PPD_ID', 'fk_field' => 'PPD_DOCUMENTO_VENTA_ID', 'nombre' => 'Política Protección Datos']
+            ];
+            
+            foreach ($tablas as $tabla => $config) {
+                $sql = "SELECT {$config['id_field']} FROM $tabla WHERE {$config['fk_field']} = ?";
+                $result = sqlsrv_query($this->conn, $sql, [$ordenId]);
+                
+                if ($result) {
+                    $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+                    if ($row) {
+                        $documentos[] = [
+                            'tabla' => $tabla,
+                            'nombre' => $config['nombre'],
+                            'existe' => true,
+                            'id' => $row[$config['id_field']]
+                        ];
+                    }
+                }
+            }
+            
+            return $documentos;
+        } catch (Exception $e) {
+            error_log("Error en getDocumentosPorOrden: " . $e->getMessage());
+            return [];
         }
     }
 }

@@ -1,11 +1,13 @@
 <?php
 session_start();
 require_once __DIR__ . '/../app/controllers/DocumentController.php';
+require_once __DIR__ . '/../app/controllers/ExpedienteController.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
 $controller = new DocumentController();
+$expedienteController = new ExpedienteController();
 
 // Rutas de navegación
 if ($uri === '/' || $uri === '' 
@@ -72,6 +74,30 @@ if ($uri === '/' || $uri === ''
 // POLÍTICA PROTECCIÓN DE DATOS
 } elseif ($method === 'POST' && ($uri === '/documents/procesar-politica-proteccion-datos' || $uri === '/digitalizacion-documentos/documents/procesar-politica-proteccion-datos')) {
     $controller->procesarPoliticaProteccionDatos();
+
+// ==========================
+// RUTAS DE EXPEDIENTES
+// ==========================
+
+// LISTAR EXPEDIENTES
+} elseif ($uri === '/expedientes' || $uri === '/expedientes/' || $uri === '/digitalizacion-documentos/expedientes' || $uri === '/digitalizacion-documentos/expedientes/') {
+    $expedienteController->index();
+
+// VER EXPEDIENTE
+} elseif ($uri === '/expedientes/ver' || $uri === '/digitalizacion-documentos/expedientes/ver') {
+    $expedienteController->ver();
+
+// IMPRIMIR TODOS LOS DOCUMENTOS
+} elseif ($uri === '/expedientes/imprimir-todos' || $uri === '/digitalizacion-documentos/expedientes/imprimir-todos') {
+    $expedienteController->imprimirTodos();
+
+// IMPRIMIR DOCUMENTO INDIVIDUAL
+} elseif ($uri === '/expedientes/imprimir-documento' || $uri === '/digitalizacion-documentos/expedientes/imprimir-documento') {
+    $expedienteController->imprimirDocumento();
+
+// BUSCAR EXPEDIENTE (API)
+} elseif ($uri === '/expedientes/buscar' || $uri === '/digitalizacion-documentos/expedientes/buscar') {
+    $expedienteController->buscar();
 
 // ==========================
 // 404

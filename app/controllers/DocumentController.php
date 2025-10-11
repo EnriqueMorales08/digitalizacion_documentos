@@ -120,6 +120,17 @@ class DocumentController {
                 $_SESSION['forma_pago'] = $_POST['OC_FORMA_PAGO'] ?? null;
                 $_SESSION['banco_abono'] = $_POST['OC_BANCO_ABONO'] ?? null;
                 $_SESSION['orden_id'] = $resultado['id'];
+                $_SESSION['orden_data'] = $_POST; // Guardar todos los datos de la orden
+                
+                // Guardar firmas en sesión
+                $_SESSION['firmas'] = [
+                    'OC_ASESOR_FIRMA' => $_POST['OC_ASESOR_FIRMA'] ?? null,
+                    'OC_CLIENTE_FIRMA' => $_POST['OC_CLIENTE_FIRMA'] ?? null,
+                    'OC_CLIENTE_HUELLA' => $_POST['OC_CLIENTE_HUELLA'] ?? null,
+                    'OC_JEFE_FIRMA' => $_POST['OC_JEFE_FIRMA'] ?? null,
+                    'OC_JEFE_HUELLA' => $_POST['OC_JEFE_HUELLA'] ?? null,
+                    'OC_VISTO_ADV' => $_POST['OC_VISTO_ADV'] ?? null
+                ];
 
                 // Comentado: no usar cookie para evitar persistencia de firmas entre sesiones
                 // setcookie('orden_id', $resultado['id'], time() + 3600, '/'); // 1 hora
@@ -170,7 +181,7 @@ class DocumentController {
             $resultado = $this->documentModel->guardarDocumentoIndividual($documentType, $_POST, $ordenId);
 
             if ($resultado['success']) {
-                header("Location: /digitalizacion-documentos/documents/show?id=$documentType&success=guardado");
+                header("Location: /digitalizacion-documentos/documents/show?id=$documentType&success=documento_guardado");
                 exit;
             } else {
                 header("Location: /digitalizacion-documentos/documents/show?id=$documentType&error=" . urlencode($resultado['error']));

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Documentos</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <style>
     body {
       background-color: #f4f6f9;
@@ -90,6 +91,13 @@
        <?php $user = $_GET['user'] ?? 'Usuario'; ?>
        <h1>📂 Panel de Documentos</h1>
        <p>Bienvenido, <strong><?= htmlspecialchars($user) ?></strong></p>
+       
+       <!-- Botón para ir al módulo de expedientes -->
+       <div class="mt-3">
+           <a href="/digitalizacion-documentos/expedientes" class="btn btn-lg btn-success">
+               <i class="bi bi-folder2-open"></i> 📁 Gestionar Expedientes
+           </a>
+       </div>
        <?php if (!$orden_guardada): ?>
            <div class="alert alert-warning mt-3">
                <strong>⚠️ Primero debe llenar y guardar la Orden de Compra.</strong> Los demás documentos estarán disponibles después.
