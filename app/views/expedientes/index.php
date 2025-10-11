@@ -67,7 +67,7 @@
                     <p class="text-muted mb-0">Buscar, visualizar e imprimir documentos por número de expediente</p>
                 </div>
                 <a href="/digitalizacion-documentos/documents" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left"></i> Volver al Panel
+                    <i class="bi bi-arrow-left"></i> Volver al Inicio
                 </a>
             </div>
         </div>

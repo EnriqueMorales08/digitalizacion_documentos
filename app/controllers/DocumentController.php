@@ -8,38 +8,13 @@ class DocumentController {
         $this->documentModel = new Document();
     }
 
-    // Panel principal
+    // Página de bienvenida (después del login)
     public function index() {
-        // 🚨 Aquí definimos las variables para que no estén undefined
-        $orden_guardada = isset($_SESSION['orden_guardada']) && $_SESSION['orden_guardada'] === true;
-        $forma_pago = trim($_SESSION['forma_pago'] ?? '');
-        $banco_abono = trim($_SESSION['banco_abono'] ?? '');
-
-        // Lista de documentos base (siempre visibles)
-        $documents = [
-            ['id' => 'orden-compra', 'title' => 'Orden de Compra'],
-            ['id' => 'acta-conocimiento-conformidad', 'title' => 'Acta Conocimiento Conformidad'],
-            ['id' => 'actorizacion-datos-personales', 'title' => 'Autorización Datos Personales'],
-            ['id' => 'carta_conocimiento_aceptacion', 'title' => 'Carta Conocimiento Aceptación'],
-            ['id' => 'carta_felicitaciones', 'title' => 'Carta Felicitaciones'],
-            ['id' => 'carta_recepcion', 'title' => 'Carta Recepción'],
-            ['id' => 'carta_obsequios', 'title' => 'Carta Obsequios'],
-            ['id' => 'politica_proteccion_datos', 'title' => 'Política de Protección de Datos'],
-        ];
-
-        // 🎯 Agregar cartas de características solo si forma de pago es CRÉDITO
-        if ($forma_pago === 'CRÉDITO') {
-            if ($banco_abono === 'Banco Interamericano de Finanzas') {
-                // Solo mostrar Carta Características Banbif
-                $documents[] = ['id' => 'carta_caracteristicas_banbif', 'title' => 'Carta Características Banbif'];
-            } else {
-                // Mostrar Carta Características Normal
-                $documents[] = ['id' => 'carta-caracteristicas', 'title' => 'Carta Características'];
-            }
-        }
-
-        // Hacemos disponibles las variables en la vista
-        require __DIR__ . '/../views/documents/index.php';
+        // Obtener el nombre del usuario (puede venir de sesión o parámetro)
+        $user = $_SESSION['user_name'] ?? $_GET['user'] ?? 'Asesor';
+        
+        // Mostrar vista de bienvenida
+        require __DIR__ . '/../views/documents/bienvenida.php';
     }
 
     // Mostrar documento (ejemplo simple)
@@ -135,7 +110,9 @@ class DocumentController {
                 // Comentado: no usar cookie para evitar persistencia de firmas entre sesiones
                 // setcookie('orden_id', $resultado['id'], time() + 3600, '/'); // 1 hora
 
-                header("Location: /digitalizacion-documentos/documents?success=orden_compra");
+                // Obtener el número de expediente para redirigir a ver documentos
+                $numeroExpediente = $_POST['OC_NUMERO_EXPEDIENTE'] ?? '';
+                header("Location: /digitalizacion-documentos/expedientes/ver?numero=" . urlencode($numeroExpediente) . "&success=orden_guardada");
                 exit;
             } else {
                 header("Location: /digitalizacion-documentos/documents?error=" . urlencode($resultado['error']));
