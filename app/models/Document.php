@@ -113,6 +113,10 @@ class Document {
                 'OC_VEHICULO_ANIO_MODELO' => 10,
                 // Agregar otros si es necesario
             ];
+            // Campos que NO deben guardarse en la base de datos (no existen como columnas)
+            $excludedFields = [
+                // OC_TIPO_CLIENTE ya fue agregado a la BD, se puede guardar
+            ];
             // Campos que son DECIMAL y necesitan limpieza numérica
             $decimalFields = [
                 'OC_PRECIO_VENTA', 'OC_BONO_FINANCIAMIENTO', 'OC_TOTAL_EQUIPAMIENTO',
@@ -122,7 +126,8 @@ class Document {
                 'OC_EQUIPAMIENTO_ADICIONAL_4', 'OC_EQUIPAMIENTO_ADICIONAL_5'
             ];
             foreach ($data as $key => $value) {
-                if (strpos($key, 'OC_') === 0) {
+                // Excluir campos que no existen en la tabla
+                if (strpos($key, 'OC_') === 0 && !in_array($key, $excludedFields)) {
                     $fields[] = $key;
                     $placeholders[] = "?";
                     $val = $value !== '' ? $value : null;
@@ -423,17 +428,37 @@ class Document {
             $placeholders[] = '?';
             $values[] = $ordenId;
 
-            // Agregar fecha de creación
-            $fields[] = $fechaField;
-            $placeholders[] = '?';
-            $values[] = date('Y-m-d H:i:s');
+            // NO agregar fecha de creación manualmente, dejar que SQL Server use DEFAULT
+            // $fields[] = $fechaField;
+            // $placeholders[] = '?';
+            // $values[] = date('Y-m-d H:i:s');
 
             // Agregar los demás campos del formulario
             foreach ($data as $key => $value) {
                 if (strpos($key, $prefix) === 0 && $key !== $fkField && $key !== $fechaField) {
                     $fields[] = $key;
                     $placeholders[] = '?';
-                    $values[] = $value !== '' ? $value : null;
+                    
+                    // Validar campos de fecha específicamente
+                    if (stripos($key, 'FECHA') !== false) {
+                        // Si es un campo de fecha y está vacío, usar NULL
+                        // Si tiene valor, validar que sea una fecha válida
+                        if ($value === '' || $value === null) {
+                            $values[] = null;
+                        } else {
+                            // Intentar convertir a formato Y-m-d
+                            $timestamp = strtotime($value);
+                            if ($timestamp !== false && $timestamp > 0) {
+                                $date = date('Y-m-d', $timestamp);
+                                $values[] = $date;
+                            } else {
+                                $values[] = null;
+                            }
+                        }
+                    } else {
+                        // Para otros campos, usar el valor o null si está vacío
+                        $values[] = $value !== '' ? $value : null;
+                    }
                 }
             }
 
@@ -442,6 +467,11 @@ class Document {
             }
 
             $sql = "INSERT INTO $table (" . implode(", ", $fields) . ") VALUES (" . implode(", ", $placeholders) . ")";
+            
+            // Log para debug
+            error_log("SQL: $sql");
+            error_log("Valores: " . print_r($values, true));
+            
             $result = sqlsrv_query($this->conn, $sql, $values);
             if (!$result) {
                 throw new Exception("Error executing query: " . print_r(sqlsrv_errors(), true));
@@ -573,5 +603,134 @@ class Document {
             error_log("Error en getDocumentosPorOrden: " . $e->getMessage());
             return [];
         }
+    }
+
+    public function getAsesores() {
+        try {
+            // Conectar a la base de datos RSFACCAR12 usando el método de Database
+            $db = new Database();
+            $connAsesores = $db->getRsfaccar12Connection();
+            
+            if ($connAsesores === null || $connAsesores === false) {
+                error_log("Error al conectar a RSFACCAR12");
+                return [];
+            }
+            
+            // Query con nombres de columnas en mayúsculas - seleccionando solo VE_CNOMBRE
+            $sql = "SELECT VE_CCODIGO, VE_CNOMBRE FROM FT0002VEND WHERE VE_CTIPVEN != 'I' ORDER BY VE_CNOMBRE";
+            $result = sqlsrv_query($connAsesores, $sql);
+            
+            if (!$result) {
+                error_log("Error en query de asesores: " . print_r(sqlsrv_errors(), true));
+                sqlsrv_close($connAsesores);
+                return [];
+            }
+            
+            $asesores = [];
+            while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+                // Intentar con mayúsculas y minúsculas para compatibilidad
+                $nombre = $row['VE_CNOMBRE'] ?? $row['ve_cnombre'] ?? '';
+                $codigo = $row['VE_CCODIGO'] ?? $row['ve_ccodigo'] ?? '';
+                
+                // Solo agregar si el nombre no está vacío
+                if (!empty($nombre)) {
+                    $asesores[] = [
+                        'codigo' => trim($codigo),
+                        'nombre' => trim($nombre)
+                    ];
+                }
+            }
+            
+            sqlsrv_close($connAsesores);
+            return $asesores;
+            
+        } catch (Exception $e) {
+            error_log("Error en getAsesores: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDatosMantenimiento($marca, $modelo) {
+        try {
+            // Leer el archivo JSON con los datos de mantenimiento
+            $jsonFile = __DIR__ . '/../../config/vehiculos_mantenimiento.json';
+            
+            error_log("Buscando archivo JSON en: $jsonFile");
+            
+            if (!file_exists($jsonFile)) {
+                error_log("❌ Archivo de mantenimiento no encontrado: $jsonFile");
+                return null;
+            }
+            
+            error_log("✓ Archivo JSON encontrado");
+            
+            $jsonContent = file_get_contents($jsonFile);
+            $vehiculos = json_decode($jsonContent, true);
+            
+            if (!$vehiculos) {
+                error_log("❌ Error al decodificar JSON de mantenimiento: " . json_last_error_msg());
+                return null;
+            }
+            
+            error_log("✓ JSON decodificado correctamente. Total vehículos: " . count($vehiculos));
+            
+            // Normalizar marca y modelo para comparación (eliminar espacios extras y caracteres especiales)
+            $marcaBuscar = strtoupper(trim(preg_replace('/\s+/', ' ', $marca)));
+            $modeloBuscar = strtoupper(trim(preg_replace('/\s+/', ' ', $modelo)));
+            
+            error_log("Buscando: MARCA='$marcaBuscar', MODELO='$modeloBuscar'");
+            
+            // Buscar coincidencia
+            foreach ($vehiculos as $vehiculo) {
+                $marcaVehiculo = strtoupper(trim(preg_replace('/\s+/', ' ', $vehiculo['MARCA'] ?? '')));
+                $modeloVehiculo = strtoupper(trim(preg_replace('/\s+/', ' ', $vehiculo['MODELO'] ?? '')));
+                
+                error_log("Comparando con: MARCA='$marcaVehiculo', MODELO='$modeloVehiculo'");
+                
+                // Comparación exacta o por contención (para casos como "SOLUTO 1.4" vs "SOLUTO")
+                $marcaCoincide = ($marcaVehiculo === $marcaBuscar);
+                $modeloCoincide = ($modeloVehiculo === $modeloBuscar) || 
+                                  (strpos($modeloBuscar, $modeloVehiculo) === 0) ||
+                                  (strpos($modeloVehiculo, $modeloBuscar) === 0);
+                
+                if ($marcaCoincide && $modeloCoincide) {
+                    error_log("✓ Coincidencia encontrada!");
+                    
+                    // Formatear los datos según los requisitos
+                    $garantia = $vehiculo['GARANTIA'] ?? '';
+                    $primerIngreso = $vehiculo['1 INGRESO'] ?? '';
+                    $periodicidad = $vehiculo['PERIODICIDAD'] ?? '';
+                    
+                    $resultado = [
+                        'GARANTIA' => $garantia ? $garantia . ', lo que pase primero' : '',
+                        'PRIMER_INGRESO' => $primerIngreso ? $this->formatearPrimerIngreso($primerIngreso) : '',
+                        'PERIODICIDAD' => $periodicidad ? 'cada ' . number_format((float)str_replace(',', '', $periodicidad), 0, '.', ',') . ' km' : ''
+                    ];
+                    
+                    error_log("Datos formateados: " . json_encode($resultado));
+                    return $resultado;
+                }
+            }
+            
+            error_log("❌ No se encontró coincidencia para MARCA='$marcaBuscar', MODELO='$modeloBuscar'");
+            return null;
+            
+        } catch (Exception $e) {
+            error_log("❌ Error en getDatosMantenimiento: " . $e->getMessage());
+            return null;
+        }
+    }
+    
+    private function formatearPrimerIngreso($valor) {
+        // Si el valor ya contiene "meses", dejarlo como está y agregar km al número
+        // Ejemplo: "5,000 o 6 meses" -> "5,000 km o 6 meses"
+        if (stripos($valor, 'meses') !== false) {
+            // Buscar el número al inicio y agregarle km
+            $valor = preg_replace('/^([\d,]+)/', '$1 km', $valor);
+            return $valor;
+        }
+        
+        // Si solo es un número, agregar km
+        return number_format((float)str_replace(',', '', $valor), 0, '.', ',') . ' km';
     }
 }

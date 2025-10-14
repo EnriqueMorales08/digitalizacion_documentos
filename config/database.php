@@ -48,4 +48,24 @@ class Database {
         }
         return $stockConn;
     }
+
+    public function getRsfaccar12Connection() {
+        $rsfaccarConn = null;
+        try {
+            $connectionInfo = array(
+                "Database" => "RSFACCAR12",
+                "UID" => $this->username,
+                "PWD" => $this->password,
+                "CharacterSet" => "UTF-8"
+            );
+            $rsfaccarConn = sqlsrv_connect($this->host, $connectionInfo);
+            if ($rsfaccarConn === false) {
+                throw new Exception("Error de conexión a BD RSFACCAR12: " . print_r(sqlsrv_errors(), true));
+            }
+        } catch (Exception $exception) {
+            error_log("Error conexión RSFACCAR12: " . $exception->getMessage());
+            return null;
+        }
+        return $rsfaccarConn;
+    }
 }

@@ -41,6 +41,7 @@
         max-width: 774px;
         border: 1px solid #000;
         background-color: white;
+        overflow: hidden;
     }
 
     @media print {
@@ -126,14 +127,22 @@
         font-size: 10px;
         width: 100%;
         box-sizing: border-box;
+        max-width: 100%;
     }
     </style>
 </head>
 
 <body>
   <!-- Flecha de regreso -->
+  <?php
+  // Determinar URL de regreso
+  $urlRegreso = '/digitalizacion-documentos/documents';
+  if (isset($_SESSION['orden_id']) && $_SESSION['orden_id']) {
+      $urlRegreso = '/digitalizacion-documentos/expedientes/ver?id=' . $_SESSION['orden_id'];
+  }
+  ?>
   <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
-    <a href="/digitalizacion-documentos/documents" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); font-family: Arial, sans-serif; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
+    <a href="<?= $urlRegreso ?>" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); font-family: Arial, sans-serif; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -169,9 +178,18 @@
         <!-- FECHA / ASESOR -->
         <div style="display:flex; border-bottom:1px solid #000; justify-content:flex-end; align-items:center; gap:20px; margin-right:50px;">
             <label for="fecha_orden" style="background:#ffffff; font-weight:bold; padding:4px;">FECHA</label>
-            <input type="date" id="fecha_orden" name="OC_FECHA_ORDEN" style="width:120px;">
+            <input type="date" id="fecha_orden" name="OC_FECHA_ORDEN" style="width:120px;" value="<?= date('Y-m-d') ?>">
             <div style="background:#ffffff; font-weight:bold; padding:4px;">ASESOR</div>
-            <input type="text" id="asesor_venta" name="OC_ASESOR_VENTA" style="width:150px;">
+            <select id="asesor_venta" name="OC_ASESOR_VENTA" style="width:200px; max-width:200px;">
+                <option value="">-- Seleccione Asesor --</option>
+                <?php if (isset($asesores) && is_array($asesores)): ?>
+                    <?php foreach ($asesores as $asesor): ?>
+                        <option value="<?php echo htmlspecialchars($asesor['nombre']); ?>">
+                            <?php echo htmlspecialchars($asesor['nombre']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
         </div>
     </div>
 
@@ -185,32 +203,42 @@
 
         <!-- Sección derecha -->
         <div style="flex:1;">
-            <!-- Fila 1 -->
+            <!-- Fila 0: Tipo de Cliente -->
             <div style="display:flex; border-bottom:1px solid #000;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Comprador</div>
-                <input type="text" name="OC_COMPRADOR_NOMBRE" style="width:150px;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px;">TIPO DOC</div>
-                <select name="OC_COMPRADOR_TIPO_DOCUMENTO" style="width:100px;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px;">Tipo de Cliente</div>
+                <div style="background:#fdeee2; flex:1; padding:4px; display:flex; gap:15px; align-items:center;">
+                    <label><input type="radio" name="OC_TIPO_CLIENTE" value="natural"> Persona natural</label>
+                    <label><input type="radio" name="OC_TIPO_CLIENTE" value="ruc"> P. Natural con RUC</label>
+                    <label><input type="radio" name="OC_TIPO_CLIENTE" value="juridica"> Persona Jurídica</label>
+                </div>
+            </div>
+
+            <!-- Fila 1 -->
+            <div style="display:flex; border-bottom:1px solid #000; overflow:hidden;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px; flex-shrink:0;">Comprador</div>
+                <input type="text" name="OC_COMPRADOR_NOMBRE" style="width:150px; max-width:150px; flex-shrink:0;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px; flex-shrink:0;">TIPO DOC</div>
+                <select name="OC_COMPRADOR_TIPO_DOCUMENTO" style="width:100px; max-width:100px; flex-shrink:0;">
                     <option value="">-- Seleccione --</option>
                     <option value="dni">DNI</option>
                     <option value="carnet">CARNET EXTRANJERIA</option>
                     <option value="ruc">RUC</option>
                 </select>
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px;">NRO. DOC</div>
-                <input type="text" name="OC_COMPRADOR_NUMERO_DOCUMENTO" style="width:150px;" oninput="validarNumeroDocumentoComprador()">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px; flex-shrink:0;">NRO. DOC</div>
+                <input type="text" name="OC_COMPRADOR_NUMERO_DOCUMENTO" style="width:150px; max-width:150px; flex-shrink:0;" oninput="validarNumeroDocumentoComprador()">
             </div>
 
             <!-- Fila 2 -->
-            <div style="display:flex; border-bottom:1px solid #000;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px;">Tipo Doc. de venta</div>
-                <select name="OC_TIPO_DOCUMENTO_VENTA" style="width:120px;">
+            <div style="display:flex; border-bottom:1px solid #000; overflow:hidden;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:120px; flex-shrink:0;">Tipo Doc. de venta</div>
+                <select name="OC_TIPO_DOCUMENTO_VENTA" style="width:120px; max-width:120px; flex-shrink:0;">
                     <option value="">-- Seleccione --</option>
                     <option value="boleta">BOLETA DE VENTA</option>
                     <option value="factura">FACTURA DE VENTA</option>
                 </select>
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px; margin-left:80px;">Fuente
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px; margin-left:20px; flex-shrink:0;">Fuente
                     Contacto</div>
-                <select name="OC_FUENTE_CONTACTO" style="width:160px;">
+                <select name="OC_FUENTE_CONTACTO" style="width:160px; max-width:160px; flex-shrink:0;">
                     <option value="">-- Seleccione --</option>
                     <option value="digital_marca">Digital Marca</option>
                     <option value="digital_dealer">Digital Dealer</option>
@@ -223,11 +251,11 @@
             </div>
 
             <!-- Fila 3 -->
-            <div style="display:flex; border-bottom:1px solid #000;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Fecha de Nac.</div>
-                <input type="date" name="OC_FECHA_NACIMIENTO" style="width:100px;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px;">Estado Civil</div>
-                <select name="OC_ESTADO_CIVIL" style="width:100px;">
+            <div style="display:flex; border-bottom:1px solid #000; overflow:hidden;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px; flex-shrink:0;">Fecha de Nac.</div>
+                <input type="date" name="OC_FECHA_NACIMIENTO" style="width:100px; max-width:100px; flex-shrink:0;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px; flex-shrink:0;">Estado Civil</div>
+                <select name="OC_ESTADO_CIVIL" style="width:100px; max-width:100px; flex-shrink:0;">
                     <option value="">-- Seleccione --</option>
                     <option value="soltero">SOLTERO</option>
                     <option value="casado">CASADO</option>
@@ -236,9 +264,9 @@
                     <option value="concubino">CONCUBINA(O)</option>
                     <option value="conviviente">CONVIVIENTE</option>
                 </select>
-                <div style="background:#ffffff; font-weight:bold; padding:4px; margin-left:5px;">Situación Laboral
+                <div style="background:#ffffff; font-weight:bold; padding:4px; margin-left:5px; flex-shrink:0;">Situación Laboral
                 </div>
-                <select name="OC_SITUACION_LABORAL" style="width:120px;">
+                <select name="OC_SITUACION_LABORAL" style="width:120px; max-width:120px; flex-shrink:0;">
                     <option value="">-- Seleccione --</option>
                     <option value="empleado">EMPLEADO</option>
                     <option value="independiente">INDEPENDIENTE</option>
@@ -266,18 +294,18 @@
             </div>
 
             <!-- Fila 5 -->
-            <div style="display:flex; border-bottom:1px solid #000;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Dirección</div>
-                <input type="text" name="OC_DIRECCION_CLIENTE" style="width:385px;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px; margin-left:15px;">Teléfonos</div>
-                <input type="text" name="OC_TELEFONO_CLIENTE" style="width:130px;">
+            <div style="display:flex; border-bottom:1px solid #000; overflow:hidden;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px; flex-shrink:0;">Dirección</div>
+                <input type="text" name="OC_DIRECCION_CLIENTE" style="width:320px; max-width:320px; flex-shrink:0;">
+                <div style="background:#ffffff; font-weight:bold; padding:4px; width:70px; margin-left:5px; flex-shrink:0;">Teléfonos</div>
+                <input type="text" name="OC_TELEFONO_CLIENTE" style="width:80px; max-width:80px; flex-shrink:0;">
+                <input type="text" name="OC_TELEFONO_ADICIONAL" placeholder="Tel. 2" style="width:80px; max-width:80px; margin-left:5px; flex-shrink:0;">
             </div>
 
             <!-- Fila 6 -->
             <div style="display:flex; border-bottom:1px solid #000;">
                 <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Email</div>
-                <input type="email" name="OC_EMAIL_CLIENTE" style="width:470px;">
-                <input type="text" name="OC_TELEFONO_ADICIONAL" style="width:150px;">
+                <input type="email" name="OC_EMAIL_CLIENTE" style="flex:1;">
             </div>
 
             <!-- Fila 7 -->
@@ -286,23 +314,10 @@
                 <input type="text" name="OC_OCUPACION_CLIENTE" style="flex:1;">
             </div>
 
-            <!-- Hobbies y Fecha de Nac. -->
+            <!-- Hobbies -->
             <div style="display:flex; border-bottom:1px solid #000;">
                 <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Hobbies</div>
-                <input type="text" name="OC_HOBBIES_CLIENTE" style="width:200px;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:100px;">Fecha de Nac.</div>
-                <input type="date" name="OC_FECHA_NACIMIENTO_NUEVO" style="width:150px;">
-            </div>
-
-            <!-- Tarjeta de propiedad -->
-            <div style="display:flex; border-top:2px solid #000; border-bottom:1px solid #000;">
-                <div style="background:#ffffff; font-weight:bold; padding:4px; width:180px;">Tarjeta de propiedad a
-                    nombre de:</div>
-                <div style="background:#fdeee2; flex:1; padding:4px; display:flex; gap:15px; align-items:center;">
-                    <label><input type="radio" name="OC_TARJETA_PROPIEDAD" value="natural"> Persona natural</label>
-                    <label><input type="radio" name="OC_TARJETA_PROPIEDAD" value="ruc"> P. Natural con RUC</label>
-                    <label><input type="radio" name="OC_TARJETA_PROPIEDAD" value="juridica"> Persona Jurídica</label>
-                </div>
+                <input type="text" name="OC_HOBBIES_CLIENTE" style="flex:1;">
             </div>
 
             <!-- Nombre / Razon Social -->
@@ -436,9 +451,9 @@
 
                 <!-- Equipamiento adicional -->
                 <div style="background:#ffffff; font-weight:bold; padding:4px;">Equipamiento adicional</div>
-                <div style="border-bottom:1px solid #000; padding:4px;">
-                    <div style="display:flex; margin-bottom:4px;">
-                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_1" style="flex:1; margin-right:5px;">
+                <div style="border-bottom:1px solid #000; padding:4px; overflow:hidden;">
+                    <div style="display:flex; margin-bottom:4px; overflow:hidden;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_1" style="width:110px; max-width:110px; margin-right:3px; flex-shrink:0;">
                             <option value="">-- Seleccione --</option>
                             <option value="ACCESORIOS">ACCESORIOS</option>
                             <option value="GPS">GPS</option>
@@ -446,14 +461,14 @@
                             <option value="PPM">PPM</option>
                             <option value="SEGURO">SEGURO</option>
                         </select>
-                        <select name="OC_MONEDA_EQUIPAMIENTO_1" style="width:70px; margin-right:5px;">
+                        <select name="OC_MONEDA_EQUIPAMIENTO_1" style="width:50px; max-width:50px; margin-right:3px; flex-shrink:0;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
                         </select>
-                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_1" style="flex:1;">
+                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_1" style="width:80px; max-width:80px; flex-shrink:0;">
                     </div>
-                    <div style="display:flex; margin-bottom:4px;">
-                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_2" style="flex:1; margin-right:5px;">
+                    <div style="display:flex; margin-bottom:4px; overflow:hidden;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_2" style="width:110px; max-width:110px; margin-right:3px; flex-shrink:0;">
                             <option value="">-- Seleccione --</option>
                             <option value="ACCESORIOS">ACCESORIOS</option>
                             <option value="GPS">GPS</option>
@@ -461,14 +476,14 @@
                             <option value="PPM">PPM</option>
                             <option value="SEGURO">SEGURO</option>
                         </select>
-                        <select name="OC_MONEDA_EQUIPAMIENTO_2" style="width:70px; margin-right:5px;">
+                        <select name="OC_MONEDA_EQUIPAMIENTO_2" style="width:50px; max-width:50px; margin-right:3px; flex-shrink:0;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
                         </select>
-                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_2" style="flex:1;">
+                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_2" style="width:80px; max-width:80px; flex-shrink:0;">
                     </div>
-                    <div style="display:flex; margin-bottom:4px;">
-                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_3" style="flex:1; margin-right:5px;">
+                    <div style="display:flex; margin-bottom:4px; overflow:hidden;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_3" style="width:110px; max-width:110px; margin-right:3px; flex-shrink:0;">
                             <option value="">-- Seleccione --</option>
                             <option value="ACCESORIOS">ACCESORIOS</option>
                             <option value="GPS">GPS</option>
@@ -476,14 +491,14 @@
                             <option value="PPM">PPM</option>
                             <option value="SEGURO">SEGURO</option>
                         </select>
-                        <select name="OC_MONEDA_EQUIPAMIENTO_3" style="width:70px; margin-right:5px;">
+                        <select name="OC_MONEDA_EQUIPAMIENTO_3" style="width:50px; max-width:50px; margin-right:3px; flex-shrink:0;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
                         </select>
-                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_3" style="flex:1;">
+                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_3" style="width:80px; max-width:80px; flex-shrink:0;">
                     </div>
-                    <div style="display:flex; margin-bottom:4px;">
-                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_4" style="flex:1; margin-right:5px;">
+                    <div style="display:flex; margin-bottom:4px; overflow:hidden;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_4" style="width:110px; max-width:110px; margin-right:3px; flex-shrink:0;">
                             <option value="">-- Seleccione --</option>
                             <option value="ACCESORIOS">ACCESORIOS</option>
                             <option value="GPS">GPS</option>
@@ -491,14 +506,14 @@
                             <option value="PPM">PPM</option>
                             <option value="SEGURO">SEGURO</option>
                         </select>
-                        <select name="OC_MONEDA_EQUIPAMIENTO_4" style="width:70px; margin-right:5px;">
+                        <select name="OC_MONEDA_EQUIPAMIENTO_4" style="width:50px; max-width:50px; margin-right:3px; flex-shrink:0;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
                         </select>
-                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_4" style="flex:1;">
+                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_4" style="width:80px; max-width:80px; flex-shrink:0;">
                     </div>
-                    <div style="display:flex;">
-                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_5" style="flex:1; margin-right:5px;">
+                    <div style="display:flex; overflow:hidden;">
+                        <select name="OC_DESCRIPCION_EQUIPAMIENTO_5" style="width:110px; max-width:110px; margin-right:3px; flex-shrink:0;">
                             <option value="">-- Seleccione --</option>
                             <option value="ACCESORIOS">ACCESORIOS</option>
                             <option value="GPS">GPS</option>
@@ -506,11 +521,11 @@
                             <option value="PPM">PPM</option>
                             <option value="SEGURO">SEGURO</option>
                         </select>
-                        <select name="OC_MONEDA_EQUIPAMIENTO_5" style="width:70px; margin-right:5px;">
+                        <select name="OC_MONEDA_EQUIPAMIENTO_5" style="width:50px; max-width:50px; margin-right:3px; flex-shrink:0;">
                             <option value="US$" selected>US$</option>
                             <option value="MN">MN</option>
                         </select>
-                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_5" style="flex:1;">
+                        <input type="text" name="OC_EQUIPAMIENTO_ADICIONAL_5" style="width:80px; max-width:80px; flex-shrink:0;">
                     </div>
                 </div>
 
@@ -732,38 +747,6 @@
 </div>
 
 
-    <script>
-        // Función para ajustar el ancho del input según el texto
-        function adjustInputWidth(input) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            context.font = getComputedStyle(input).font;
-            const textWidth = context.measureText(input.value || ' ').width;
-            let minWidth = 50; // mínimo por defecto
-            if (input.name === 'OC_ASESOR_VENTA' || input.name === 'OC_COMPRADOR_NOMBRE') {
-                minWidth = 150; // mínimo más largo para asesor y comprador
-            }
-
-            // Obtener el ancho original definido en el CSS inline
-            const originalWidth = input.style.width;
-            const originalWidthValue = originalWidth ? parseInt(originalWidth.replace('px', '')) : 0;
-
-            // Usar el mayor entre el ancho calculado y el ancho original
-            const newWidth = Math.max(textWidth + 20, minWidth, originalWidthValue);
-            input.style.width = newWidth + 'px';
-        }
-
-        // Ajustar al cargar
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('input[type="text"]:not(.no-adjust), input[type="email"]:not(.no-adjust)');
-            inputs.forEach(input => {
-                adjustInputWidth(input);
-                input.addEventListener('input', function() {
-                    adjustInputWidth(this);
-                });
-            });
-        });
-    </script>
         </div>
     <script>
         // Función para calcular el tipo de cambio en soles
@@ -780,19 +763,7 @@
             document.getElementsByName('OC_TIPO_CAMBIO_SOL')[0].value = resultado.toFixed(2);
         }
 
-        // Función para autocompletar fecha de nacimiento
-        function autocompletarFechaNacimiento() {
-            const primeraFechaNacimiento = document.getElementsByName('OC_FECHA_NACIMIENTO')[0];
-            const segundaFechaNacimiento = document.getElementsByName('OC_FECHA_NACIMIENTO_NUEVO')[0];
-
-            if (primeraFechaNacimiento && segundaFechaNacimiento) {
-                primeraFechaNacimiento.addEventListener('change', function() {
-                    if (this.value && !segundaFechaNacimiento.value) {
-                        segundaFechaNacimiento.value = this.value;
-                    }
-                });
-            }
-        }
+        // Función de autocompletar fecha de nacimiento eliminada (campo duplicado removido)
 
         // Función para manejar bloqueo de bono de financiamiento y campos bancarios
         function manejarBonoFinanciamiento() {
@@ -862,6 +833,35 @@
             calcularTipoCambio();
         }
 
+        // Función para autocompletar datos de mantenimiento por marca y modelo
+        function autocompletarDatosMantenimiento() {
+            const marcaInput = document.getElementsByName('OC_VEHICULO_MARCA')[0];
+            const modeloInput = document.getElementsByName('OC_VEHICULO_MODELO')[0];
+            
+            const buscarDatos = function() {
+                const marca = marcaInput.value.trim();
+                const modelo = modeloInput.value.trim();
+                
+                if (marca && modelo) {
+                    fetch('/digitalizacion-documentos/documents/buscar-datos-mantenimiento?marca=' + encodeURIComponent(marca) + '&modelo=' + encodeURIComponent(modelo))
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.GARANTIA) {
+                                document.getElementsByName('OC_PERIODO_GARANTIA')[0].value = data.GARANTIA || '';
+                                document.getElementsByName('OC_PERIODICIDAD_MANTENIMIENTO')[0].value = data.PERIODICIDAD || '';
+                                document.getElementsByName('OC_PRIMER_MANTENIMIENTO')[0].value = data.PRIMER_INGRESO || '';
+                            }
+                        })
+                        .catch(error => console.error('Error al buscar datos de mantenimiento:', error));
+                }
+            };
+            
+            if (marcaInput && modeloInput) {
+                marcaInput.addEventListener('blur', buscarDatos);
+                modeloInput.addEventListener('blur', buscarDatos);
+            }
+        }
+
         // Función para autocompletar vehículo por chasis
         function autocompletarVehiculo() {
             const chasisInput = document.getElementsByName('OC_VEHICULO_CHASIS')[0];
@@ -882,9 +882,39 @@
                                     document.getElementsByName('OC_VEHICULO_MOTOR')[0].value = data.MOTOR || '';
                                     document.getElementsByName('OC_VEHICULO_CODIGO_FSC')[0].value = data.FSC || '';
                                     document.getElementsByName('OC_PRECIO_VENTA')[0].value = data.PRECIO || '';
-                                    document.getElementsByName('OC_PERIODO_GARANTIA')[0].value = data.GARANTIA || '';
-                                    document.getElementsByName('OC_PERIODICIDAD_MANTENIMIENTO')[0].value = data.PERIODICIDAD || '';
-                                    document.getElementsByName('OC_PRIMER_MANTENIMIENTO')[0].value = data.PRIMER_INGRESO || '';
+                                    
+                                    // Después de autocompletar por chasis, buscar datos de mantenimiento
+                                    const marca = data.MARCA || '';
+                                    const modelo = data.MODELO || '';
+                                    console.log('🔍 Buscando datos de mantenimiento para:', { marca, modelo });
+                                    
+                                    if (marca && modelo) {
+                                        const url = '/digitalizacion-documentos/documents/buscar-datos-mantenimiento?marca=' + encodeURIComponent(marca) + '&modelo=' + encodeURIComponent(modelo);
+                                        console.log('📡 URL de búsqueda:', url);
+                                        
+                                        fetch(url)
+                                            .then(response => {
+                                                console.log('📥 Respuesta recibida:', response.status);
+                                                return response.json();
+                                            })
+                                            .then(datosMantenimiento => {
+                                                console.log('📦 Datos de mantenimiento:', datosMantenimiento);
+                                                
+                                                if (datosMantenimiento && datosMantenimiento.GARANTIA) {
+                                                    console.log('✅ Autocompletando campos de mantenimiento');
+                                                    document.getElementsByName('OC_PERIODO_GARANTIA')[0].value = datosMantenimiento.GARANTIA || '';
+                                                    document.getElementsByName('OC_PERIODICIDAD_MANTENIMIENTO')[0].value = datosMantenimiento.PERIODICIDAD || '';
+                                                    document.getElementsByName('OC_PRIMER_MANTENIMIENTO')[0].value = datosMantenimiento.PRIMER_INGRESO || '';
+                                                } else {
+                                                    console.warn('⚠️ No se encontraron datos de mantenimiento para esta marca/modelo');
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('❌ Error al buscar datos de mantenimiento:', error);
+                                            });
+                                    } else {
+                                        console.warn('⚠️ Marca o modelo vacío, no se buscan datos de mantenimiento');
+                                    }
                                 }
                             })
                             .catch(error => console.error('Error:', error));
@@ -1096,11 +1126,13 @@
                 precioVentaInput.addEventListener('input', calcularPrecioTotalCompra);
             }
 
-            // Inicializar autocompletado de fecha
-            autocompletarFechaNacimiento();
+            // Autocompletado de fecha eliminado
 
             // Inicializar autocompletado de vehículo
             autocompletarVehiculo();
+            
+            // Inicializar autocompletado de datos de mantenimiento
+            autocompletarDatosMantenimiento();
 
             // Inicializar cálculos
             manejarBonoFinanciamiento();

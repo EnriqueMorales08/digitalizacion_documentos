@@ -75,11 +75,15 @@ class DocumentController {
         // Obtener lista de bancos
         $bancos = $this->documentModel->getBancos();
 
+        // Obtener lista de asesores
+        $asesores = $this->documentModel->getAsesores();
+
         // Hacer disponibles las variables en la vista
         $ordenCompraData = $ordenCompraData;
         $documentData = $documentData;
         $vehiculoData = $vehiculoData;
         $bancos = $bancos;
+        $asesores = $asesores;
 
         require __DIR__ . '/../views/documents/layouts/' . $id . '.php';
     }
@@ -112,7 +116,8 @@ class DocumentController {
 
                 // Obtener el número de expediente para redirigir a ver documentos
                 $numeroExpediente = $_POST['OC_NUMERO_EXPEDIENTE'] ?? '';
-                header("Location: /digitalizacion-documentos/expedientes/ver?numero=" . urlencode($numeroExpediente) . "&success=orden_guardada");
+                // Usar el ID de la orden para evitar problemas de búsqueda inmediata
+                header("Location: /digitalizacion-documentos/expedientes/ver?id=" . $resultado['id'] . "&success=orden_guardada");
                 exit;
             } else {
                 header("Location: /digitalizacion-documentos/documents?error=" . urlencode($resultado['error']));
@@ -128,6 +133,18 @@ class DocumentController {
             $vehiculo = $this->documentModel->buscarVehiculoPorChasis($chasis);
             header('Content-Type: application/json');
             echo json_encode($vehiculo ?: []);
+            exit;
+        }
+    }
+
+    // Buscar datos de mantenimiento por marca y modelo
+    public function buscarDatosMantenimiento() {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['marca']) && isset($_GET['modelo'])) {
+            $marca = trim($_GET['marca']);
+            $modelo = trim($_GET['modelo']);
+            $datos = $this->documentModel->getDatosMantenimiento($marca, $modelo);
+            header('Content-Type: application/json');
+            echo json_encode($datos ?: []);
             exit;
         }
     }

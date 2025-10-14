@@ -24,15 +24,19 @@ class ExpedienteController {
      * Ver todos los documentos de un expediente específico
      */
     public function ver() {
-        if (!isset($_GET['numero'])) {
+        // Aceptar búsqueda por ID o por número de expediente
+        if (isset($_GET['id'])) {
+            // Buscar por ID directo
+            $ordenId = (int)$_GET['id'];
+            $ordenCompra = $this->documentModel->getOrdenCompra($ordenId);
+        } elseif (isset($_GET['numero'])) {
+            // Buscar por número de expediente
+            $numeroExpediente = trim($_GET['numero']);
+            $ordenCompra = $this->documentModel->buscarPorNumeroExpediente($numeroExpediente);
+        } else {
             header("Location: /digitalizacion-documentos/expedientes");
             exit;
         }
-
-        $numeroExpediente = trim($_GET['numero']);
-        
-        // Buscar la orden de compra
-        $ordenCompra = $this->documentModel->buscarPorNumeroExpediente($numeroExpediente);
         
         if (!$ordenCompra) {
             header("Location: /digitalizacion-documentos/expedientes?error=" . urlencode('Expediente no encontrado'));
@@ -40,6 +44,9 @@ class ExpedienteController {
         }
 
         $ordenId = $ordenCompra['OC_ID'];
+        
+        // Guardar en sesión para uso posterior
+        $_SESSION['orden_id'] = $ordenId;
         
         // Obtener todos los documentos asociados
         $documentos = $this->documentModel->getDocumentosPorOrden($ordenId);

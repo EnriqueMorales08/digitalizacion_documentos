@@ -35,6 +35,10 @@ if ($uri === '/' || $uri === ''
 } elseif ($method === 'GET' && ($uri === '/documents/buscar-vehiculo' || $uri === '/digitalizacion-documentos/documents/buscar-vehiculo')) {
     $controller->buscarVehiculo();
 
+// BUSCAR DATOS DE MANTENIMIENTO
+} elseif ($method === 'GET' && ($uri === '/documents/buscar-datos-mantenimiento' || $uri === '/digitalizacion-documentos/documents/buscar-datos-mantenimiento')) {
+    $controller->buscarDatosMantenimiento();
+
 // VERIFICAR FIRMA
 } elseif ($method === 'POST' && ($uri === '/documents/verificar-firma' || $uri === '/digitalizacion-documentos/documents/verificar-firma')) {
     $controller->verificarFirma();

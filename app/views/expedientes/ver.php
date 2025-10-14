@@ -118,17 +118,28 @@
 
             <!-- Otros Documentos -->
             <?php 
+            // Determinar qué carta de características mostrar según el banco
+            $formaPago = trim($ordenCompra['OC_FORMA_PAGO'] ?? '');
+            $bancoAbono = trim($ordenCompra['OC_BANCO_ABONO'] ?? '');
+            
             $todosDocumentos = [
                 'acta-conocimiento-conformidad' => 'Acta Conocimiento Conformidad',
                 'actorizacion-datos-personales' => 'Autorización Datos Personales',
                 'carta_conocimiento_aceptacion' => 'Carta Conocimiento Aceptación',
                 'carta_recepcion' => 'Carta Recepción',
-                'carta-caracteristicas' => 'Carta Características',
-                'carta_caracteristicas_banbif' => 'Carta Características Banbif',
                 'carta_felicitaciones' => 'Carta Felicitaciones',
                 'carta_obsequios' => 'Carta Obsequios',
                 'politica_proteccion_datos' => 'Política Protección Datos'
             ];
+            
+            // Solo agregar carta de características si la forma de pago es CRÉDITO
+            if ($formaPago === 'CRÉDITO') {
+                if ($bancoAbono === 'Banco Interamericano de Finanzas') {
+                    $todosDocumentos['carta_caracteristicas_banbif'] = 'Carta Características Banbif';
+                } else {
+                    $todosDocumentos['carta-caracteristicas'] = 'Carta Características';
+                }
+            }
 
             $documentosExistentes = [];
             foreach ($documentos as $doc) {

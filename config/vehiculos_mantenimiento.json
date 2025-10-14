@@ -1,0 +1,58 @@
+[
+  {
+    "MARCA": "CHERY",
+    "MODELO": "ARRIZO 5",
+    "GARANTIA": "5 años o 100 mil km",
+    "1 INGRESO": "5,000 o 6 meses",
+    "PERIODICIDAD": "5,000"
+  },
+  {
+    "MARCA": "CHERY",
+    "MODELO": "ARRIZO 6",
+    "GARANTIA": "3 años o 100 mil km",
+    "1 INGRESO": "5,000 o 6 meses",
+    "PERIODICIDAD": "5,000"
+  },
+  {
+    "MARCA": "CHERY",
+    "MODELO": "TIGGO 7 PRO",
+    "GARANTIA": "7 años o 150 mil km",
+    "1 INGRESO": "10,000 o 12 meses",
+    "PERIODICIDAD": "10,000"
+  },
+  {
+    "MARCA": "CHERY",
+    "MODELO": "TIGGO 8 PRO",
+    "GARANTIA": "7 años o 150 mil km",
+    "1 INGRESO": "10,000 o 12 meses",
+    "PERIODICIDAD": "10,000"
+  },
+  {
+    "MARCA": "TOYOTA",
+    "MODELO": "COROLLA",
+    "GARANTIA": "3 años o 100 mil km",
+    "1 INGRESO": "10,000 o 12 meses",
+    "PERIODICIDAD": "10,000"
+  },
+  {
+    "MARCA": "NISSAN",
+    "MODELO": "SENTRA",
+    "GARANTIA": "3 años o 100 mil km",
+    "1 INGRESO": "5,000 o 6 meses",
+    "PERIODICIDAD": "5,000"
+  },
+  {
+    "MARCA": "CHERY",
+    "MODELO": "PLATEAU",
+    "GARANTIA": "5 años o 100 mil km",
+    "1 INGRESO": "5,000 o 6 meses",
+    "PERIODICIDAD": "5,000"
+  },
+  {
+    "MARCA": "KIA",
+    "MODELO": "SOLUTO",
+    "GARANTIA": "5 años o 100 mil km",
+    "1 INGRESO": "10,000 o 12 meses",
+    "PERIODICIDAD": "10,000"
+  }
+]

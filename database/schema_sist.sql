@@ -28,6 +28,7 @@ CREATE TABLE SIST_ORDEN_COMPRA (
     OC_COMPRADOR_NUMERO_DOCUMENTO NVARCHAR(20),
     OC_TIPO_DOCUMENTO_VENTA NVARCHAR(20), -- BOLETA DE VENTA, FACTURA DE VENTA
     OC_FUENTE_CONTACTO NVARCHAR(100), -- Digital Marca, Digital Dealer, etc.
+    OC_TIPO_CLIENTE NVARCHAR(50), -- Tipo de cliente: natural, ruc, juridica
 
     -- INFORMACIÓN PERSONAL DEL CLIENTE (orden del formulario)
     OC_FECHA_NACIMIENTO DATE, -- Primera fecha de nacimiento (junto a estado civil)
