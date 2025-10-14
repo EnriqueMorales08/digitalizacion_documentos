@@ -185,6 +185,11 @@ class Document {
 
             // Guardar el número de expediente en la sesión
             $_SESSION['numero_expediente'] = $numeroExpediente;
+            
+            // Enviar correo al centro de costo si existe email
+            if (!empty($data['OC_EMAIL_CENTRO_COSTO'])) {
+                $this->enviarCorreoAprobacion($id, $data['OC_EMAIL_CENTRO_COSTO'], $numeroExpediente);
+            }
 
             return ['success' => true, 'id' => $id, 'numero_expediente' => $numeroExpediente];
         } catch (Exception $e) {
@@ -192,6 +197,80 @@ class Document {
         }
     }
 
+
+    private function enviarCorreoAprobacion($ordenId, $emailDestino, $numeroExpediente) {
+        try {
+            // Obtener datos de la orden para el correo
+            $orden = $this->getOrdenCompra($ordenId);
+            
+            if (!$orden) {
+                error_log("No se pudo obtener la orden $ordenId para enviar correo");
+                return false;
+            }
+            
+            // URL del panel de aprobación
+            $urlAprobacion = "http://190.238.78.104:3800/digitalizacion-documentos/aprobacion/panel?id=" . $ordenId;
+            
+            // Construir el HTML del correo
+            $htmlBody = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h2 style='color: #1e3a8a;'>Orden de Compra Pendiente de Aprobación</h2>
+                <p><strong>Número de Expediente:</strong> {$numeroExpediente}</p>
+                <p><strong>Cliente:</strong> {$orden['OC_COMPRADOR_NOMBRE']}</p>
+                <p><strong>Vehículo:</strong> {$orden['OC_VEHICULO_MARCA']} {$orden['OC_VEHICULO_MODELO']}</p>
+                <p><strong>Asesor:</strong> {$orden['OC_ASESOR_VENTA']}</p>
+                <p><strong>Estado:</strong> <span style='color: orange;'>Pendiente de aprobación</span></p>
+                <br>
+                <p>
+                    <a href='{$urlAprobacion}' 
+                       style='background-color: #1e3a8a; color: white; padding: 12px 24px; 
+                              text-decoration: none; border-radius: 4px; display: inline-block;'>
+                        Ver Orden Pendiente
+                    </a>
+                </p>
+                <br>
+                <p style='color: #666; font-size: 12px;'>
+                    Este correo fue generado automáticamente. Por favor no responder.
+                </p>
+            </div>
+            ";
+            
+            // Preparar datos para la API de correo
+            $emailData = [
+                'to' => $emailDestino,
+                'subject' => "Orden de Compra Pendiente - {$numeroExpediente}",
+                'html' => $htmlBody,
+                'from' => 'noreply@interamericananorte.com',
+                'from_name' => 'Sistema de Digitalización - Interamericana'
+            ];
+            
+            // Enviar correo usando fetch (se ejecutará en el cliente, pero aquí usamos cURL desde PHP)
+            $ch = curl_init('http://190.238.78.104:3800/robot-sdg-ford/api/pv/mail/mail-generico.php');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($httpCode === 200) {
+                error_log("Correo de aprobación enviado exitosamente a: {$emailDestino}");
+                return true;
+            } else {
+                error_log("Error al enviar correo de aprobación. HTTP Code: {$httpCode}, Response: {$response}");
+                return false;
+            }
+            
+        } catch (Exception $e) {
+            error_log("Excepción al enviar correo de aprobación: " . $e->getMessage());
+            return false;
+        }
+    }
 
     private $meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -327,13 +406,265 @@ class Document {
     }
 
     public function verificarFirma($usuario, $password) {
-        $sql = "SELECT firma_data FROM firmas WHERE usuario = ? AND password = ?";
-        $result = sqlsrv_query($this->conn, $sql, [$usuario, $password]);
+        // Conectar a BD DOC_DIGITALES para obtener firmas
+        $db = new Database();
+        $docDigitalesConn = $db->getDocDigitalesConnection();
+        
+        if (!$docDigitalesConn) {
+            error_log("No se pudo conectar a DOC_DIGITALES para verificar firma");
+            return null;
+        }
+        
+        $sql = "SELECT firma_data, firma_mail, firma_nombre, firma_apellido FROM firmas WHERE usuario = ? AND password = ?";
+        $result = sqlsrv_query($docDigitalesConn, $sql, [$usuario, $password]);
         if (!$result) {
+            sqlsrv_close($docDigitalesConn);
             return null;
         }
         $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
-        return $row ? 'http://190.238.78.104:3800' . $row['firma_data'] : null;
+        sqlsrv_close($docDigitalesConn);
+        
+        if ($row) {
+            // Guardar datos del usuario en sesión
+            $_SESSION['usuario_email'] = $row['firma_mail'];
+            $_SESSION['usuario_nombre'] = $row['firma_nombre'];
+            $_SESSION['usuario_apellido'] = $row['firma_apellido'];
+            $_SESSION['usuario_nombre_completo'] = trim($row['firma_nombre'] . ' ' . $row['firma_apellido']);
+            return 'http://190.238.78.104:3800' . $row['firma_data'];
+        }
+        return null;
+    }
+
+    public function getCentrosCosto() {
+        // Usar API de Google Sheets - EXACTAMENTE IGUAL QUE buscarVehiculoPorChasis
+        $apiUrl = 'https://opensheet.elk.sh/155IT8et2XYhMK6bkr7OJBtCziHS6X9Ia_6Q99Gm0WAk/Hoja%201';
+        
+        // Método simple: igual que el que funciona en buscarVehiculoPorChasis
+        $apiData = @file_get_contents($apiUrl);
+        
+        if ($apiData) {
+            $centros = json_decode($apiData, true);
+            if ($centros && is_array($centros)) {
+                error_log("✅ API Google Sheets funcionó: " . count($centros) . " centros obtenidos");
+                return $centros;
+            }
+        }
+        
+        // Si falla, usar archivo de respaldo
+        error_log("⚠️ API falló, usando archivo de respaldo");
+        $backupFile = __DIR__ . '/../../centros_costo_backup.json';
+        
+        if (file_exists($backupFile)) {
+            $backupData = file_get_contents($backupFile);
+            $centros = json_decode($backupData, true);
+            if ($centros && is_array($centros)) {
+                error_log("✅ Archivo de respaldo funcionó: " . count($centros) . " centros");
+                return $centros;
+            }
+        }
+        
+        error_log("❌ No se pudieron obtener centros de costo");
+        return [];
+    }
+    
+    public function getAgencias() {
+        $centros = $this->getCentrosCosto();
+        
+        // Debug: verificar estructura
+        if (empty($centros)) {
+            error_log("getCentrosCosto() devolvió array vacío");
+            return [];
+        }
+        
+        // Extraer agencias manualmente para evitar problemas con array_column
+        $agencias = [];
+        foreach ($centros as $centro) {
+            // Intentar diferentes variaciones del nombre de la columna
+            $agencia = $centro['AGENCIA'] ?? $centro['agencia'] ?? $centro['Agencia'] ?? null;
+            
+            // Limpiar espacios y normalizar
+            if ($agencia) {
+                $agencia = trim($agencia);
+                if (!in_array($agencia, $agencias)) {
+                    $agencias[] = $agencia;
+                }
+            }
+        }
+        
+        sort($agencias);
+        error_log("Agencias extraídas: " . json_encode($agencias));
+        return $agencias;
+    }
+    
+    public function getNombresPorAgencia($agencia) {
+        $centros = $this->getCentrosCosto();
+        $nombres = [];
+        
+        foreach ($centros as $centro) {
+            $centroAgencia = $centro['AGENCIA'] ?? $centro['agencia'] ?? $centro['Agencia'] ?? '';
+            $centroNombre = $centro['NOMBRE'] ?? $centro['nombre'] ?? $centro['Nombre'] ?? '';
+            
+            // Limpiar espacios y caracteres especiales
+            $centroAgencia = trim($centroAgencia);
+            $centroNombre = trim($centroNombre);
+            
+            if ($centroAgencia === $agencia && $centroNombre && !in_array($centroNombre, $nombres)) {
+                $nombres[] = $centroNombre;
+            }
+        }
+        
+        // Ordenar alfabéticamente para mejor UX
+        sort($nombres);
+        
+        error_log("Nombres para agencia '$agencia': " . json_encode($nombres));
+        return $nombres;
+    }
+    
+    public function getCentrosCostoPorNombre($agencia, $nombre) {
+        $centros = $this->getCentrosCosto();
+        $centrosFiltrados = [];
+        
+        foreach ($centros as $centro) {
+            $centroAgencia = $centro['AGENCIA'] ?? $centro['agencia'] ?? '';
+            $centroNombre = $centro['NOMBRE'] ?? $centro['nombre'] ?? '';
+            
+            // Limpiar espacios para comparación consistente
+            $centroAgencia = trim($centroAgencia);
+            $centroNombre = trim($centroNombre);
+            
+            if ($centroAgencia === $agencia && $centroNombre === $nombre) {
+                $centrosFiltrados[] = [
+                    'CENTRO_COSTO' => $centro['CENTRO DE COSTO'] ?? $centro['centro de costo'] ?? '',
+                    'NOMBRE_CC' => $centro['NOMBRE CC'] ?? $centro['nombre cc'] ?? '',
+                    'EMAIL' => $centro['EMAIL'] ?? $centro['email'] ?? ''
+                ];
+            }
+        }
+        
+        error_log("Centros para agencia '$agencia' y nombre '$nombre': " . json_encode($centrosFiltrados));
+        return $centrosFiltrados;
+    }
+
+    public function procesarAprobacion($ordenId, $accion, $observaciones = '') {
+        try {
+            // Obtener datos de la orden
+            $orden = $this->getOrdenCompra($ordenId);
+            
+            if (!$orden) {
+                return ['success' => false, 'error' => 'Orden no encontrada'];
+            }
+            
+            if ($orden['OC_ESTADO_APROBACION'] !== 'PENDIENTE') {
+                return ['success' => false, 'error' => 'Esta orden ya fue procesada'];
+            }
+            
+            $nuevoEstado = $accion === 'aprobar' ? 'APROBADO' : 'RECHAZADO';
+            
+            // Actualizar estado en la base de datos
+            $sql = "UPDATE SIST_ORDEN_COMPRA 
+                    SET OC_ESTADO_APROBACION = ?, 
+                        OC_FECHA_APROBACION = GETDATE(),
+                        OC_OBSERVACIONES_APROBACION = ?
+                    WHERE OC_ID = ?";
+            
+            $result = sqlsrv_query($this->conn, $sql, [$nuevoEstado, $observaciones, $ordenId]);
+            
+            if (!$result) {
+                throw new Exception("Error al actualizar estado: " . print_r(sqlsrv_errors(), true));
+            }
+            
+            // Enviar correo al asesor (email guardado en sesión al hacer login)
+            // Por ahora, obtener el email del asesor desde la BD de firmas
+            $this->enviarCorreoAsesor($orden, $nuevoEstado, $observaciones);
+            
+            return ['success' => true, 'estado' => $nuevoEstado];
+            
+        } catch (Exception $e) {
+            error_log("Error en procesarAprobacion: " . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    private function enviarCorreoAsesor($orden, $estado, $observaciones) {
+        try {
+            // Obtener email del asesor desde BD DOC_DIGITALES
+            $db = new Database();
+            $docDigitalesConn = $db->getDocDigitalesConnection();
+            
+            if (!$docDigitalesConn) {
+                error_log("No se pudo conectar a DOC_DIGITALES para obtener email del asesor");
+                return false;
+            }
+            
+            // Buscar el email del asesor por nombre completo
+            $sql = "SELECT TOP 1 firma_mail, firma_nombre, firma_apellido 
+                    FROM firmas 
+                    WHERE CONCAT(firma_nombre, ' ', firma_apellido) LIKE ? 
+                       OR usuario LIKE ?";
+            $nombreBuscar = '%' . $orden['OC_ASESOR_VENTA'] . '%';
+            $result = sqlsrv_query($docDigitalesConn, $sql, [$nombreBuscar, $nombreBuscar]);
+            
+            if ($result) {
+                $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+                if ($row && $row['firma_mail']) {
+                    $emailAsesor = $row['firma_mail'];
+                    $nombreCompletoAsesor = trim($row['firma_nombre'] . ' ' . $row['firma_apellido']);
+                    
+                    // Construir HTML del correo
+                    $estadoTexto = $estado === 'APROBADO' ? 'APROBADA' : 'RECHAZADA';
+                    $colorEstado = $estado === 'APROBADO' ? '#10b981' : '#ef4444';
+                    
+                    $htmlBody = "
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <h2 style='color: #1e3a8a;'>Hola {$nombreCompletoAsesor},</h2>
+                        <p style='font-size: 16px; margin-bottom: 20px;'>Tu orden de compra ha sido <strong style='color: {$colorEstado};'>{$estadoTexto}</strong></p>
+                        
+                        <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                            <p><strong>Número de Expediente:</strong> {$orden['OC_NUMERO_EXPEDIENTE']}</p>
+                            <p><strong>Cliente:</strong> {$orden['OC_COMPRADOR_NOMBRE']}</p>
+                            <p><strong>Vehículo:</strong> {$orden['OC_VEHICULO_MARCA']} {$orden['OC_VEHICULO_MODELO']}</p>
+                            <p><strong>Estado:</strong> <span style='color: {$colorEstado}; font-weight: bold;'>{$estadoTexto}</span></p>
+                            " . ($observaciones ? "<p><strong>Observaciones:</strong> {$observaciones}</p>" : "") . "
+                        </div>
+                        
+                        <p style='color: #666; font-size: 12px;'>
+                            Este correo fue generado automáticamente. Por favor no responder.
+                        </p>
+                    </div>
+                    ";
+                    
+                    $emailData = [
+                        'to' => $emailAsesor,
+                        'subject' => "Orden de Compra {$estadoTexto} - {$orden['OC_NUMERO_EXPEDIENTE']}",
+                        'html' => $htmlBody,
+                        'from' => 'noreply@interamericananorte.com',
+                        'from_name' => 'Sistema de Digitalización - Interamericana'
+                    ];
+                    
+                    $ch = curl_init('http://190.238.78.104:3800/robot-sdg-ford/api/pv/mail/mail-generico.php');
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                    
+                    $response = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+                    
+                    if ($httpCode === 200) {
+                        error_log("Correo de notificación enviado al asesor: {$emailAsesor}");
+                    }
+                }
+            }
+            
+            sqlsrv_close($docDigitalesConn);
+            return true;
+            
+        } catch (Exception $e) {
+            error_log("Error al enviar correo al asesor: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getBancos() {

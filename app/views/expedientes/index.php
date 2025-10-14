@@ -140,6 +140,15 @@
                                     }
                                     ?>
                                 </small>
+                                <br>
+                                <?php 
+                                $estado = $orden['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+                                $badgeClass = $estado === 'APROBADO' ? 'bg-success' : ($estado === 'RECHAZADO' ? 'bg-danger' : 'bg-warning text-dark');
+                                $icono = $estado === 'APROBADO' ? 'check-circle' : ($estado === 'RECHAZADO' ? 'x-circle' : 'clock');
+                                ?>
+                                <span class="badge <?= $badgeClass ?> mt-2">
+                                    <i class="bi bi-<?= $icono ?>"></i> <?= $estado ?>
+                                </span>
                             </div>
                             <div class="col-md-5">
                                 <strong><i class="bi bi-person"></i> Cliente:</strong> 
@@ -155,10 +164,17 @@
                                    class="btn btn-primary btn-action">
                                     <i class="bi bi-eye"></i> Ver Documentos
                                 </a>
-                                <a href="/digitalizacion-documentos/expedientes/imprimir-todos?numero=<?= urlencode($orden['OC_NUMERO_EXPEDIENTE']) ?>" 
-                                   class="btn btn-success btn-action" target="_blank">
-                                    <i class="bi bi-printer"></i> Imprimir Todo
-                                </a>
+                                <?php if ($estado === 'APROBADO'): ?>
+                                    <a href="/digitalizacion-documentos/expedientes/imprimir-todos?numero=<?= urlencode($orden['OC_NUMERO_EXPEDIENTE']) ?>" 
+                                       class="btn btn-success btn-action" target="_blank">
+                                        <i class="bi bi-printer"></i> Imprimir Todo
+                                    </a>
+                                <?php else: ?>
+                                    <button class="btn btn-secondary btn-action" disabled 
+                                            title="Solo se puede imprimir cuando esté APROBADO">
+                                        <i class="bi bi-printer"></i> Imprimir Todo
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

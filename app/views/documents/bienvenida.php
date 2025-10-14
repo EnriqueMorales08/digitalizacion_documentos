@@ -40,6 +40,34 @@
       color: #6b7280;
       margin-bottom: 40px;
     }
+    .user-info {
+      background: #f3f4f6;
+      padding: 15px 25px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      display: inline-block;
+    }
+    .user-info strong {
+      color: #1e3a8a;
+      font-size: 1.1rem;
+    }
+    .btn-logout {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-logout:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+    }
     .btn-generar {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: none;
@@ -88,20 +116,23 @@
   </style>
 </head>
 <body>
+  <button class="btn-logout" onclick="window.location.href='/digitalizacion-documentos/auth/logout'">
+    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+  </button>
+
   <div class="welcome-container">
     <div class="welcome-icon">
       <i class="bi bi-person-circle"></i>
     </div>
-    
-    <div class="user-badge">
-      <i class="bi bi-person-check-fill"></i>
-      <strong><?= htmlspecialchars($user ?? 'Asesor') ?></strong>
-    </div>
-    
     <h1 class="welcome-title">¡Bienvenido!</h1>
-    <p class="welcome-subtitle">
-      Sistema de Gestión de Documentos<br>
-      <small class="text-muted">Digitalización de Expedientes</small>
+    
+    <?php if (isset($_SESSION['usuario_nombre_completo'])): ?>
+    <div class="user-info">
+      <strong><?= htmlspecialchars($_SESSION['usuario_nombre_completo']) ?></strong>
+    </div>
+    <?php endif; ?>
+    
+    <p class="welcome-subtitle">Sistema de Digitalización de Documentos</p>
     </p>
     
     <div class="d-grid gap-3">

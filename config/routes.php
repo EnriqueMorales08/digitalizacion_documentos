@@ -2,9 +2,30 @@
 session_start();
 require_once __DIR__ . '/../app/controllers/DocumentController.php';
 require_once __DIR__ . '/../app/controllers/ExpedienteController.php';
+require_once __DIR__ . '/../app/controllers/AuthController.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
+
+// ==========================
+// RUTAS DE AUTENTICACIÓN (SIN PROTECCIÓN)
+// ==========================
+if ($method === 'GET' && ($uri === '/auth/login' || $uri === '/digitalizacion-documentos/auth/login')) {
+    $authController = new AuthController();
+    $authController->showLogin();
+    exit;
+} elseif ($method === 'POST' && ($uri === '/auth/login' || $uri === '/digitalizacion-documentos/auth/login')) {
+    $authController = new AuthController();
+    $authController->login();
+    exit;
+} elseif ($method === 'GET' && ($uri === '/auth/logout' || $uri === '/digitalizacion-documentos/auth/logout')) {
+    $authController = new AuthController();
+    $authController->logout();
+    exit;
+}
+
+// VERIFICAR SESIÓN PARA TODAS LAS DEMÁS RUTAS
+AuthController::verificarSesion();
 
 $controller = new DocumentController();
 $expedienteController = new ExpedienteController();
@@ -38,6 +59,30 @@ if ($uri === '/' || $uri === ''
 // BUSCAR DATOS DE MANTENIMIENTO
 } elseif ($method === 'GET' && ($uri === '/documents/buscar-datos-mantenimiento' || $uri === '/digitalizacion-documentos/documents/buscar-datos-mantenimiento')) {
     $controller->buscarDatosMantenimiento();
+
+// OBTENER AGENCIAS
+} elseif ($method === 'GET' && ($uri === '/documents/get-agencias' || $uri === '/digitalizacion-documentos/documents/get-agencias')) {
+    $controller->getAgencias();
+
+// OBTENER NOMBRES POR AGENCIA
+} elseif ($method === 'GET' && ($uri === '/documents/get-nombres-por-agencia' || $uri === '/digitalizacion-documentos/documents/get-nombres-por-agencia')) {
+    $controller->getNombresPorAgencia();
+
+// OBTENER CENTROS DE COSTO POR NOMBRE
+} elseif ($method === 'GET' && ($uri === '/documents/get-centros-costo-por-nombre' || $uri === '/digitalizacion-documentos/documents/get-centros-costo-por-nombre')) {
+    $controller->getCentrosCostoPorNombre();
+
+// PANEL DE APROBACIÓN
+} elseif ($method === 'GET' && ($uri === '/aprobacion/panel' || $uri === '/digitalizacion-documentos/aprobacion/panel')) {
+    require_once __DIR__ . '/../app/controllers/AprobacionController.php';
+    $aprobacionController = new AprobacionController();
+    $aprobacionController->panel();
+
+// PROCESAR APROBACIÓN
+} elseif ($method === 'POST' && ($uri === '/aprobacion/procesar' || $uri === '/digitalizacion-documentos/aprobacion/procesar')) {
+    require_once __DIR__ . '/../app/controllers/AprobacionController.php';
+    $aprobacionController = new AprobacionController();
+    $aprobacionController->procesar();
 
 // VERIFICAR FIRMA
 } elseif ($method === 'POST' && ($uri === '/documents/verificar-firma' || $uri === '/digitalizacion-documentos/documents/verificar-firma')) {

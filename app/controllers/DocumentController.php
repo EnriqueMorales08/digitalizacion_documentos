@@ -148,6 +148,39 @@ class DocumentController {
             exit;
         }
     }
+    
+    // Obtener agencias
+    public function getAgencias() {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $agencias = $this->documentModel->getAgencias();
+            header('Content-Type: application/json');
+            echo json_encode($agencias);
+            exit;
+        }
+    }
+    
+    // Obtener nombres por agencia
+    public function getNombresPorAgencia() {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['agencia'])) {
+            $agencia = trim($_GET['agencia']);
+            $nombres = $this->documentModel->getNombresPorAgencia($agencia);
+            header('Content-Type: application/json');
+            echo json_encode($nombres);
+            exit;
+        }
+    }
+    
+    // Obtener centros de costo por nombre
+    public function getCentrosCostoPorNombre() {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['agencia']) && isset($_GET['nombre'])) {
+            $agencia = trim($_GET['agencia']);
+            $nombre = trim($_GET['nombre']);
+            $centros = $this->documentModel->getCentrosCostoPorNombre($agencia, $nombre);
+            header('Content-Type: application/json');
+            echo json_encode($centros);
+            exit;
+        }
+    }
 
     // Verificar firma
     public function verificarFirma() {

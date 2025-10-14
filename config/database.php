@@ -68,4 +68,24 @@ class Database {
         }
         return $rsfaccarConn;
     }
+
+    public function getDocDigitalesConnection() {
+        $docDigitalesConn = null;
+        try {
+            $connectionInfo = array(
+                "Database" => "DOC_DIGITALES",
+                "UID" => $this->username,
+                "PWD" => $this->password,
+                "CharacterSet" => "UTF-8"
+            );
+            $docDigitalesConn = sqlsrv_connect($this->host, $connectionInfo);
+            if ($docDigitalesConn === false) {
+                throw new Exception("Error de conexión a BD DOC_DIGITALES: " . print_r(sqlsrv_errors(), true));
+            }
+        } catch (Exception $exception) {
+            error_log("Error conexión DOC_DIGITALES: " . $exception->getMessage());
+            return null;
+        }
+        return $docDigitalesConn;
+    }
 }

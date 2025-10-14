@@ -1,0 +1,402 @@
+[
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "NANCY VILCA BENAVIDES",
+    "TIENDA": "TDA KIA",
+    "CENTRO DE COSTO": "02460",
+    "NOMBRE CC": "CIX VEH KIA",
+    "MARCAS": "KIA",
+    "EMAIL": "nvilca@interamericananorte.com",
+    "CELULAR": "978002937"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "NANCY VILCA BENAVIDES",
+    "TIENDA": "TDA UNIQUE",
+    "CENTRO DE COSTO": "02481",
+    "NOMBRE CC": "CIX VEH SALAVERRY AANDES",
+    "MARCAS": "ALTOS ANDES",
+    "EMAIL": "nvilca@interamericananorte.com",
+    "CELULAR": "978002937"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "NANCY VILCA BENAVIDES",
+    "TIENDA": "TDA UNIQUE",
+    "CENTRO DE COSTO": "02490",
+    "NOMBRE CC": "CIX VEH VOL",
+    "MARCAS": "VOLKSWAGEN",
+    "EMAIL": "nvilca@interamericananorte.com",
+    "CELULAR": "978002937"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "NANCY VILCA BENAVIDES",
+    "TIENDA": "TDA UNIQUE",
+    "CENTRO DE COSTO": "02571",
+    "NOMBRE CC": "CIX VEH SALAVERRY FORD",
+    "MARCAS": "FORD",
+    "EMAIL": "nvilca@interamericananorte.com",
+    "CELULAR": "978002937"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "NANCY VILCA BENAVIDES",
+    "TIENDA": "TDA UNIQUE",
+    "CENTRO DE COSTO": "02572",
+    "NOMBRE CC": "CIX VEH SALAVERRY PEUGEOT",
+    "MARCAS": "PEUGEOT",
+    "EMAIL": "nvilca@interamericananorte.com",
+    "CELULAR": "978002937"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "NANCY VILCA BENAVIDES",
+    "TIENDA": "TDA LAMBAYEQUE",
+    "CENTRO DE COSTO": "02550",
+    "NOMBRE CC": "CIX VEH LAMB",
+    "MARCAS": "PESADOS Y LIVIANOS",
+    "EMAIL": "nvilca@interamericananorte.com",
+    "CELULAR": "978002937"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA FORD",
+    "CENTRO DE COSTO": "01272",
+    "NOMBRE CC": "PIU VEH FORD",
+    "MARCAS": "FORD, PEUGEOT ",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA SUBARU ",
+    "CENTRO DE COSTO": "01271",
+    "NOMBRE CC": "PIU VEH SUBARU",
+    "MARCAS": "DFSK, SUBARU ",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA MIRAFLORES ",
+    "CENTRO DE COSTO": "01222",
+    "NOMBRE CC": "PIU VEH MIRAFLORES",
+    "MARCAS": "MULTIMARCAS ",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA PEUGEOT",
+    "CENTRO DE COSTO": "01363",
+    "NOMBRE CC": "PIU VEH PEU ",
+    "MARCAS": "PEUGEOT",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA MG",
+    "CENTRO DE COSTO": "01282",
+    "NOMBRE CC": "PIU VEH MG",
+    "MARCAS": "MG",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "CAJA MOTORES AUTOPLAZA ",
+    "CENTRO DE COSTO": "03300",
+    "NOMBRE CC": "MOTORES AUTOPLAZA",
+    "MARCAS": "FOTON",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "TALARA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA TALARA ",
+    "CENTRO DE COSTO": "01380",
+    "NOMBRE CC": "TAL VEHICULOS",
+    "MARCAS": "MULTIMARCAS ",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "TALARA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA SULLANA",
+    "CENTRO DE COSTO": "01360",
+    "NOMBRE CC": "SUL VEHICULOS",
+    "MARCAS": "MULTIMARCAS ",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "TALARA",
+    "NOMBRE": "FIORELLA DIAZ GARCES",
+    "TIENDA": "TDA TUMBES ",
+    "CENTRO DE COSTO": "01362",
+    "NOMBRE CC": "TUM VEHICULOS",
+    "MARCAS": "MULTIMARCAS ",
+    "EMAIL": "fdiaz.interamericananorte@gmail.com",
+    "CELULAR": "910184762"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA DIVE Y ANDES MOTORS",
+    "CENTRO DE COSTO": "02501",
+    "NOMBRE CC": "CIX VEH DIVEMOTOR",
+    "MARCAS": "JEEP, RAM, FIAT",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA DIVE Y ANDES MOTORS",
+    "CENTRO DE COSTO": "02502",
+    "NOMBRE CC": "CIX VEH ANDES MOTOR",
+    "MARCAS": "MAXUS, KARRY",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA MULTIMARCAS",
+    "CENTRO DE COSTO": "02570",
+    "NOMBRE CC": "CIX VEH MULTI JLO",
+    "MARCAS": "MULTIMARCAS ",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA CHERY",
+    "CENTRO DE COSTO": "02480",
+    "NOMBRE CC": "CIX VEH CHERY",
+    "MARCAS": "CHERY",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA MITSUBISHI",
+    "CENTRO DE COSTO": "02470",
+    "NOMBRE CC": "CIX VEH MIT",
+    "MARCAS": "MITSUBISHI",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "TARAPOTO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA TARAPOTO",
+    "CENTRO DE COSTO": "02622",
+    "NOMBRE CC": "TAR VEH TARAPOTO",
+    "MARCAS": "CHERY - FORD ",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "PIURA ",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01260",
+    "NOMBRE CC": "PIU VEH KIA",
+    "MARCAS": "KIA, MITSUBISHI, CHERY , ALTOS ANDES, LICITACIONES, SEMINUEVOS ",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA ",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01290",
+    "NOMBRE CC": "PIU VEH MIT",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA ",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01280",
+    "NOMBRE CC": "PIU VEH CHERY",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA ",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01281",
+    "NOMBRE CC": "PIU VEH ALTOS ANDES",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA ",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01310",
+    "NOMBRE CC": "PIU VEH LICITACIONES",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA ",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01250",
+    "NOMBRE CC": "PIU VEH SEMINUEVOS",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA ",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA MEGA ",
+    "CENTRO DE COSTO": "01365",
+    "NOMBRE CC": "PIU VEH MEGA",
+    "MARCAS": "MULTIMARCAS ",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA VOLKSWAGEN ",
+    "CENTRO DE COSTO": "01291",
+    "NOMBRE CC": "PIU VEH VOL",
+    "MARCAS": "VOLKSWAGEN ",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PESADOS ",
+    "CENTRO DE COSTO": "01270",
+    "NOMBRE CC": "PIU VEH PESADOS",
+    "MARCAS": "FUSO , EURO CAMIONES ",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "CAJA AMERICA RENTING ",
+    "CENTRO DE COSTO": "05300",
+    "NOMBRE CC": "AMERICA RENTING",
+    "MARCAS": "TODAS Y CREDITOS DIRECTOS ",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01200",
+    "NOMBRE CC": "",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01300",
+    "NOMBRE CC": "",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01364",
+    "NOMBRE CC": "",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01367",
+    "NOMBRE CC": "",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "PIURA",
+    "NOMBRE": "INGRY SILUPU NAVARRO ",
+    "TIENDA": "TDA PRINCIPAL ",
+    "CENTRO DE COSTO": "01397",
+    "NOMBRE CC": "",
+    "MARCAS": "",
+    "EMAIL": "isilupu.interamericananorte.com",
+    "CELULAR": "976213707"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA MG",
+    "CENTRO DE COSTO": "02482",
+    "NOMBRE CC": "CIX VEH MG",
+    "MARCAS": "MG",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA MG",
+    "CENTRO DE COSTO": "02510",
+    "NOMBRE CC": "",
+    "MARCAS": "",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES",
+    "TIENDA": "TDA MG",
+    "CENTRO DE COSTO": "02560",
+    "NOMBRE CC": "",
+    "MARCAS": "",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  },
+  {
+    "AGENCIA": "CHICLAYO",
+    "NOMBRE": "LUZ MERCEDES ORDOÑEZ CORRALES ",
+    "TIENDA": "TODAS LAS TIENDAS",
+    "CENTRO DE COSTO": "02600",
+    "NOMBRE CC": "CIX VEH MAQUISISTEMAS",
+    "MARCAS": " MULTIMARCAS",
+    "EMAIL": "lordonez.interamericananorte@gmail.com",
+    "CELULAR": "942419943"
+  }
+]

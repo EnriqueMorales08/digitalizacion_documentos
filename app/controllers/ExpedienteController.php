@@ -73,6 +73,16 @@ class ExpedienteController {
             exit;
         }
 
+        // VERIFICAR ESTADO DE APROBACIÓN
+        $estadoAprobacion = $ordenCompra['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+        if ($estadoAprobacion !== 'APROBADO') {
+            $mensaje = $estadoAprobacion === 'RECHAZADO' 
+                ? 'No se puede imprimir. La orden fue RECHAZADA.' 
+                : 'No se puede imprimir. La orden está PENDIENTE de aprobación.';
+            header("Location: /digitalizacion-documentos/expedientes?error=" . urlencode($mensaje));
+            exit;
+        }
+
         $ordenId = $ordenCompra['OC_ID'];
         
         // Obtener todos los documentos asociados
@@ -105,6 +115,16 @@ class ExpedienteController {
         
         if (!$ordenCompra) {
             header("Location: /digitalizacion-documentos/expedientes?error=" . urlencode('Expediente no encontrado'));
+            exit;
+        }
+
+        // VERIFICAR ESTADO DE APROBACIÓN
+        $estadoAprobacion = $ordenCompra['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+        if ($estadoAprobacion !== 'APROBADO') {
+            $mensaje = $estadoAprobacion === 'RECHAZADO' 
+                ? 'No se puede imprimir. La orden fue RECHAZADA.' 
+                : 'No se puede imprimir. La orden está PENDIENTE de aprobación.';
+            header("Location: /digitalizacion-documentos/expedientes?error=" . urlencode($mensaje));
             exit;
         }
 
