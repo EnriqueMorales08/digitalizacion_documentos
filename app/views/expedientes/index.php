@@ -66,9 +66,11 @@
                     <h1 class="mb-2"><i class="bi bi-folder2-open"></i> Gestión de Expedientes</h1>
                     <p class="text-muted mb-0">Buscar, visualizar e imprimir documentos por número de expediente</p>
                 </div>
-                <a href="/digitalizacion-documentos/documents" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left"></i> Volver al Inicio
-                </a>
+                <div>
+                    <a href="/digitalizacion-documentos/documents" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Volver al Inicio
+                    </a>
+                </div>
             </div>
         </div>
 

@@ -105,6 +105,9 @@ class Document {
             // Agregar el número de expediente generado a los datos
             $data['OC_NUMERO_EXPEDIENTE'] = $numeroExpediente;
             
+            // Inicializar estado de aprobación como PENDIENTE
+            $data['OC_ESTADO_APROBACION'] = 'PENDIENTE';
+            
             // Filtrar solo campos OC_ y truncar si es necesario
             $fields = [];
             $placeholders = [];
@@ -186,9 +189,34 @@ class Document {
             // Guardar el número de expediente en la sesión
             $_SESSION['numero_expediente'] = $numeroExpediente;
             
-            // Enviar correo al centro de costo si existe email
-            if (!empty($data['OC_EMAIL_CENTRO_COSTO'])) {
-                $this->enviarCorreoAprobacion($id, $data['OC_EMAIL_CENTRO_COSTO'], $numeroExpediente);
+            error_log("=== INTENTANDO ENVIAR CORREO AL RESPONSABLE ===");
+            
+            // Priorizar el email guardado directamente en el formulario
+            $emailResponsable = trim($data['OC_EMAIL_CENTRO_COSTO'] ?? '');
+            
+            // Si no está el email directo, buscar por agencia y responsable
+            if (empty($emailResponsable) && !empty($data['OC_AGENCIA']) && !empty($data['OC_NOMBRE_RESPONSABLE'])) {
+                error_log("Email no encontrado en formulario, buscando por Agencia y Responsable...");
+                error_log("Agencia: " . $data['OC_AGENCIA']);
+                error_log("Responsable: " . $data['OC_NOMBRE_RESPONSABLE']);
+                $emailResponsable = $this->getEmailResponsable($data['OC_AGENCIA'], $data['OC_NOMBRE_RESPONSABLE']);
+            }
+            
+            error_log("Email responsable: " . ($emailResponsable ?: 'NO ENCONTRADO'));
+            error_log("Orden ID para correo: " . $id);
+            error_log("Número expediente para correo: " . $numeroExpediente);
+            
+            if ($emailResponsable) {
+                error_log("🚀 Iniciando envío de correo...");
+                try {
+                    $resultadoEnvio = $this->enviarCorreoResponsable($id, $emailResponsable, $numeroExpediente);
+                    error_log("Resultado envío: " . ($resultadoEnvio ? '✅ EXITOSO' : '❌ FALLIDO'));
+                } catch (Exception $e) {
+                    error_log("❌ EXCEPCIÓN al enviar correo: " . $e->getMessage());
+                    error_log("Stack trace: " . $e->getTraceAsString());
+                }
+            } else {
+                error_log("ERROR: No se pudo obtener el email del responsable");
             }
 
             return ['success' => true, 'id' => $id, 'numero_expediente' => $numeroExpediente];
@@ -198,8 +226,14 @@ class Document {
     }
 
 
-    private function enviarCorreoAprobacion($ordenId, $emailDestino, $numeroExpediente) {
+    private function enviarCorreoResponsable($ordenId, $emailDestino, $numeroExpediente) {
         try {
+            // Validar email destino
+            if (empty($emailDestino) || !filter_var($emailDestino, FILTER_VALIDATE_EMAIL)) {
+                error_log("❌ Email destino inválido o vacío: " . var_export($emailDestino, true));
+                return false;
+            }
+            
             // Obtener datos de la orden para el correo
             $orden = $this->getOrdenCompra($ordenId);
             
@@ -211,14 +245,21 @@ class Document {
             // URL del panel de aprobación
             $urlAprobacion = "http://190.238.78.104:3800/digitalizacion-documentos/aprobacion/panel?id=" . $ordenId;
             
+            // Obtener datos con valores por defecto
+            $cliente = $orden['OC_COMPRADOR_NOMBRE'] ?? 'No especificado';
+            $marca = $orden['OC_VEHICULO_MARCA'] ?? '';
+            $modelo = $orden['OC_VEHICULO_MODELO'] ?? '';
+            $vehiculo = trim($marca . ' ' . $modelo) ?: 'No especificado';
+            $asesor = $orden['OC_ASESOR_VENTA'] ?? 'No especificado';
+            
             // Construir el HTML del correo
             $htmlBody = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                 <h2 style='color: #1e3a8a;'>Orden de Compra Pendiente de Aprobación</h2>
                 <p><strong>Número de Expediente:</strong> {$numeroExpediente}</p>
-                <p><strong>Cliente:</strong> {$orden['OC_COMPRADOR_NOMBRE']}</p>
-                <p><strong>Vehículo:</strong> {$orden['OC_VEHICULO_MARCA']} {$orden['OC_VEHICULO_MODELO']}</p>
-                <p><strong>Asesor:</strong> {$orden['OC_ASESOR_VENTA']}</p>
+                <p><strong>Cliente:</strong> {$cliente}</p>
+                <p><strong>Vehículo:</strong> {$vehiculo}</p>
+                <p><strong>Asesor:</strong> {$asesor}</p>
                 <p><strong>Estado:</strong> <span style='color: orange;'>Pendiente de aprobación</span></p>
                 <br>
                 <p>
@@ -235,16 +276,22 @@ class Document {
             </div>
             ";
             
-            // Preparar datos para la API de correo
+            // Preparar datos para la API de correo (SIEMPRE desde comunica@interamericana.shop)
             $emailData = [
                 'to' => $emailDestino,
-                'subject' => "Orden de Compra Pendiente - {$numeroExpediente}",
+                'subject' => "📬 Orden de Compra Pendiente de Aprobación - {$numeroExpediente}",
                 'html' => $htmlBody,
-                'from' => 'noreply@interamericananorte.com',
-                'from_name' => 'Sistema de Digitalización - Interamericana'
+                'from' => 'comunica@interamericana.shop',
+                'from_name' => 'Sistema de Digitalización Interamericana'
             ];
             
-            // Enviar correo usando fetch (se ejecutará en el cliente, pero aquí usamos cURL desde PHP)
+            error_log("=== DATOS DEL CORREO ===");
+            error_log("TO: " . $emailDestino);
+            error_log("FROM: comunica@interamericana.shop");
+            error_log("SUBJECT: 📬 Orden de Compra Pendiente de Aprobación - {$numeroExpediente}");
+            error_log("JSON a enviar: " . json_encode($emailData));
+            
+            // Enviar correo usando cURL
             $ch = curl_init('http://190.238.78.104:3800/robot-sdg-ford/api/pv/mail/mail-generico.php');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
@@ -256,13 +303,20 @@ class Document {
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
             
+            error_log("HTTP Code: {$httpCode}");
+            error_log("Response: {$response}");
+            if ($curlError) {
+                error_log("cURL Error: {$curlError}");
+            }
+            
             if ($httpCode === 200) {
-                error_log("Correo de aprobación enviado exitosamente a: {$emailDestino}");
+                error_log("✅ Correo de aprobación enviado exitosamente a: {$emailDestino}");
                 return true;
             } else {
-                error_log("Error al enviar correo de aprobación. HTTP Code: {$httpCode}, Response: {$response}");
+                error_log("❌ Error al enviar correo de aprobación. HTTP Code: {$httpCode}, Response: {$response}");
                 return false;
             }
             
@@ -436,48 +490,32 @@ class Document {
     }
 
     public function getCentrosCosto() {
-        // Usar API de Google Sheets - EXACTAMENTE IGUAL QUE buscarVehiculoPorChasis
-        $apiUrl = 'https://opensheet.elk.sh/155IT8et2XYhMK6bkr7OJBtCziHS6X9Ia_6Q99Gm0WAk/Hoja%201';
-        
-        // Método simple: igual que el que funciona en buscarVehiculoPorChasis
-        $apiData = @file_get_contents($apiUrl);
-        
-        if ($apiData) {
-            $centros = json_decode($apiData, true);
-            if ($centros && is_array($centros)) {
-                error_log("✅ API Google Sheets funcionó: " . count($centros) . " centros obtenidos");
-                return $centros;
-            }
-        }
-        
-        // Si falla, usar archivo de respaldo
-        error_log("⚠️ API falló, usando archivo de respaldo");
+        // Usar SIEMPRE el archivo JSON local (la API no funciona)
         $backupFile = __DIR__ . '/../../centros_costo_backup.json';
         
         if (file_exists($backupFile)) {
             $backupData = file_get_contents($backupFile);
             $centros = json_decode($backupData, true);
+            
             if ($centros && is_array($centros)) {
-                error_log("✅ Archivo de respaldo funcionó: " . count($centros) . " centros");
                 return $centros;
             }
         }
         
-        error_log("❌ No se pudieron obtener centros de costo");
         return [];
     }
     
     public function getAgencias() {
         $centros = $this->getCentrosCosto();
         
-        // Debug: verificar estructura
         if (empty($centros)) {
-            error_log("getCentrosCosto() devolvió array vacío");
             return [];
         }
         
         // Extraer agencias manualmente para evitar problemas con array_column
         $agencias = [];
+        $agenciasNormalizadas = []; // Para evitar duplicados con diferentes espacios/encoding
+        
         foreach ($centros as $centro) {
             // Intentar diferentes variaciones del nombre de la columna
             $agencia = $centro['AGENCIA'] ?? $centro['agencia'] ?? $centro['Agencia'] ?? null;
@@ -485,20 +523,24 @@ class Document {
             // Limpiar espacios y normalizar
             if ($agencia) {
                 $agencia = trim($agencia);
-                if (!in_array($agencia, $agencias)) {
+                // Normalizar para comparación (eliminar espacios múltiples, convertir a mayúsculas)
+                $agenciaNormalizada = strtoupper(preg_replace('/\s+/', ' ', $agencia));
+                
+                if (!in_array($agenciaNormalizada, $agenciasNormalizadas)) {
+                    $agenciasNormalizadas[] = $agenciaNormalizada;
                     $agencias[] = $agencia;
                 }
             }
         }
         
         sort($agencias);
-        error_log("Agencias extraídas: " . json_encode($agencias));
         return $agencias;
     }
     
     public function getNombresPorAgencia($agencia) {
         $centros = $this->getCentrosCosto();
         $nombres = [];
+        $nombresNormalizados = []; // Para evitar duplicados con diferentes espacios/encoding
         
         foreach ($centros as $centro) {
             $centroAgencia = $centro['AGENCIA'] ?? $centro['agencia'] ?? $centro['Agencia'] ?? '';
@@ -508,7 +550,11 @@ class Document {
             $centroAgencia = trim($centroAgencia);
             $centroNombre = trim($centroNombre);
             
-            if ($centroAgencia === $agencia && $centroNombre && !in_array($centroNombre, $nombres)) {
+            // Normalizar para comparación (eliminar espacios múltiples, convertir a mayúsculas)
+            $nombreNormalizado = strtoupper(preg_replace('/\s+/', ' ', $centroNombre));
+            
+            if ($centroAgencia === $agencia && $centroNombre && !in_array($nombreNormalizado, $nombresNormalizados)) {
+                $nombresNormalizados[] = $nombreNormalizado;
                 $nombres[] = $centroNombre;
             }
         }
@@ -516,32 +562,48 @@ class Document {
         // Ordenar alfabéticamente para mejor UX
         sort($nombres);
         
-        error_log("Nombres para agencia '$agencia': " . json_encode($nombres));
         return $nombres;
+    }
+    
+    public function getEmailResponsable($agencia, $responsable) {
+        $centros = $this->getCentrosCosto();
+        
+        foreach ($centros as $centro) {
+            $centroAgencia = trim($centro['AGENCIA'] ?? $centro['agencia'] ?? $centro['Agencia'] ?? '');
+            $centroNombre = trim($centro['NOMBRE'] ?? $centro['nombre'] ?? $centro['Nombre'] ?? '');
+            
+            if ($centroAgencia === $agencia && $centroNombre === $responsable) {
+                return trim($centro['EMAIL'] ?? $centro['email'] ?? '');
+            }
+        }
+        
+        return null;
     }
     
     public function getCentrosCostoPorNombre($agencia, $nombre) {
         $centros = $this->getCentrosCosto();
         $centrosFiltrados = [];
-        
+        $centrosUnicos = [];
+
         foreach ($centros as $centro) {
-            $centroAgencia = $centro['AGENCIA'] ?? $centro['agencia'] ?? '';
-            $centroNombre = $centro['NOMBRE'] ?? $centro['nombre'] ?? '';
-            
+            $centroAgencia = trim($centro['AGENCIA'] ?? $centro['agencia'] ?? '');
+            $centroNombre = trim($centro['NOMBRE'] ?? $centro['nombre'] ?? '');
+
             // Limpiar espacios para comparación consistente
-            $centroAgencia = trim($centroAgencia);
-            $centroNombre = trim($centroNombre);
-            
             if ($centroAgencia === $agencia && $centroNombre === $nombre) {
-                $centrosFiltrados[] = [
-                    'CENTRO_COSTO' => $centro['CENTRO DE COSTO'] ?? $centro['centro de costo'] ?? '',
-                    'NOMBRE_CC' => $centro['NOMBRE CC'] ?? $centro['nombre cc'] ?? '',
-                    'EMAIL' => $centro['EMAIL'] ?? $centro['email'] ?? ''
-                ];
+                $centroCosto = $centro['CENTRO DE COSTO'] ?? $centro['centro de costo'] ?? '';
+                // Evitar duplicados usando el centro de costo como clave
+                if (!in_array($centroCosto, $centrosUnicos)) {
+                    $centrosUnicos[] = $centroCosto;
+                    $centrosFiltrados[] = [
+                        'CENTRO_COSTO' => $centroCosto,
+                        'NOMBRE_CC' => $centro['NOMBRE CC'] ?? $centro['nombre cc'] ?? '',
+                        'EMAIL' => $centro['EMAIL'] ?? $centro['email'] ?? ''
+                    ];
+                }
             }
         }
-        
-        error_log("Centros para agencia '$agencia' y nombre '$nombre': " . json_encode($centrosFiltrados));
+
         return $centrosFiltrados;
     }
 
@@ -586,83 +648,79 @@ class Document {
     }
     
     private function enviarCorreoAsesor($orden, $estado, $observaciones) {
+        error_log("=== INICIANDO envíoCorreoAsesor ===");
+        error_log("Orden ID: {$orden['OC_ID']}, Estado: $estado");
+
         try {
-            // Obtener email del asesor desde BD DOC_DIGITALES
-            $db = new Database();
-            $docDigitalesConn = $db->getDocDigitalesConnection();
-            
-            if (!$docDigitalesConn) {
-                error_log("No se pudo conectar a DOC_DIGITALES para obtener email del asesor");
+            // IMPORTANTE: El correo se envía al usuario que está logueado (quien creó la orden)
+            // NO al asesor seleccionado en el formulario
+            $emailAsesor = $_SESSION['usuario_email'] ?? null;
+            $nombreAsesor = $_SESSION['usuario_nombre_completo'] ?? 'Asesor';
+
+            if (!$emailAsesor) {
+                error_log("ERROR: No hay email en la sesión del usuario logueado");
                 return false;
             }
-            
-            // Buscar el email del asesor por nombre completo
-            $sql = "SELECT TOP 1 firma_mail, firma_nombre, firma_apellido 
-                    FROM firmas 
-                    WHERE CONCAT(firma_nombre, ' ', firma_apellido) LIKE ? 
-                       OR usuario LIKE ?";
-            $nombreBuscar = '%' . $orden['OC_ASESOR_VENTA'] . '%';
-            $result = sqlsrv_query($docDigitalesConn, $sql, [$nombreBuscar, $nombreBuscar]);
-            
-            if ($result) {
-                $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
-                if ($row && $row['firma_mail']) {
-                    $emailAsesor = $row['firma_mail'];
-                    $nombreCompletoAsesor = trim($row['firma_nombre'] . ' ' . $row['firma_apellido']);
-                    
-                    // Construir HTML del correo
-                    $estadoTexto = $estado === 'APROBADO' ? 'APROBADA' : 'RECHAZADA';
-                    $colorEstado = $estado === 'APROBADO' ? '#10b981' : '#ef4444';
-                    
-                    $htmlBody = "
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                        <h2 style='color: #1e3a8a;'>Hola {$nombreCompletoAsesor},</h2>
-                        <p style='font-size: 16px; margin-bottom: 20px;'>Tu orden de compra ha sido <strong style='color: {$colorEstado};'>{$estadoTexto}</strong></p>
-                        
-                        <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
-                            <p><strong>Número de Expediente:</strong> {$orden['OC_NUMERO_EXPEDIENTE']}</p>
-                            <p><strong>Cliente:</strong> {$orden['OC_COMPRADOR_NOMBRE']}</p>
-                            <p><strong>Vehículo:</strong> {$orden['OC_VEHICULO_MARCA']} {$orden['OC_VEHICULO_MODELO']}</p>
-                            <p><strong>Estado:</strong> <span style='color: {$colorEstado}; font-weight: bold;'>{$estadoTexto}</span></p>
-                            " . ($observaciones ? "<p><strong>Observaciones:</strong> {$observaciones}</p>" : "") . "
-                        </div>
-                        
-                        <p style='color: #666; font-size: 12px;'>
-                            Este correo fue generado automáticamente. Por favor no responder.
-                        </p>
-                    </div>
-                    ";
-                    
-                    $emailData = [
-                        'to' => $emailAsesor,
-                        'subject' => "Orden de Compra {$estadoTexto} - {$orden['OC_NUMERO_EXPEDIENTE']}",
-                        'html' => $htmlBody,
-                        'from' => 'noreply@interamericananorte.com',
-                        'from_name' => 'Sistema de Digitalización - Interamericana'
-                    ];
-                    
-                    $ch = curl_init('http://190.238.78.104:3800/robot-sdg-ford/api/pv/mail/mail-generico.php');
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_POST, true);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                    
-                    $response = curl_exec($ch);
-                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                    curl_close($ch);
-                    
-                    if ($httpCode === 200) {
-                        error_log("Correo de notificación enviado al asesor: {$emailAsesor}");
-                    }
-                }
+
+            error_log("Email del usuario logueado: $emailAsesor ($nombreAsesor)");
+
+            // Construir HTML del correo
+            $estadoTexto = $estado === 'APROBADO' ? 'APROBADA' : 'RECHAZADA';
+            $colorEstado = $estado === 'APROBADO' ? '#10b981' : '#ef4444';
+
+            $htmlBody = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h2 style='color: #1e3a8a;'>Hola {$nombreAsesor},</h2>
+                <p style='font-size: 16px; margin-bottom: 20px;'>Tu orden de compra ha sido <strong style='color: {$colorEstado};'>{$estadoTexto}</strong></p>
+
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p><strong>Número de Expediente:</strong> {$orden['OC_NUMERO_EXPEDIENTE']}</p>
+                    <p><strong>Cliente:</strong> {$orden['OC_COMPRADOR_NOMBRE']}</p>
+                    <p><strong>Vehículo:</strong> {$orden['OC_VEHICULO_MARCA']} {$orden['OC_VEHICULO_MODELO']}</p>
+                    <p><strong>Estado:</strong> <span style='color: {$colorEstado}; font-weight: bold;'>{$estadoTexto}</span></p>
+                    " . ($observaciones ? "<p><strong>Observaciones:</strong> {$observaciones}</p>" : "") . "
+                </div>
+
+                <p style='color: #666; font-size: 12px;'>
+                    Este correo fue generado automáticamente. Por favor no responder.
+                </p>
+            </div>
+            ";
+
+            $emailData = [
+                'to' => $emailAsesor,
+                'subject' => "📬 Orden de Compra {$estadoTexto} - {$orden['OC_NUMERO_EXPEDIENTE']}",
+                'html' => $htmlBody,
+                'from' => 'comunica@interamericana.shop',
+                'from_name' => 'Sistema de Digitalización Interamericana'
+            ];
+
+            error_log("=== ENVIANDO CORREO AL ASESOR ===");
+            error_log("TO: $emailAsesor");
+            error_log("FROM: comunica@interamericana.shop");
+            error_log("SUBJECT: 📬 Orden de Compra {$estadoTexto} - {$orden['OC_NUMERO_EXPEDIENTE']}");
+
+            $ch = curl_init('http://190.238.78.104:3800/robot-sdg-ford/api/pv/mail/mail-generico.php');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode === 200) {
+                error_log("Correo de notificación enviado exitosamente al asesor: {$emailAsesor}");
+                return true;
+            } else {
+                error_log("Error al enviar correo al asesor. HTTP Code: {$httpCode}, Response: {$response}");
+                return false;
             }
-            
-            sqlsrv_close($docDigitalesConn);
-            return true;
-            
+
         } catch (Exception $e) {
-            error_log("Error al enviar correo al asesor: " . $e->getMessage());
+            error_log("Excepción en enviarCorreoAsesor: " . $e->getMessage());
             return false;
         }
     }

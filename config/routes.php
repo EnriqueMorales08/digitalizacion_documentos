@@ -97,7 +97,7 @@ if ($uri === '/' || $uri === ''
     $controller->procesarActaConformidad();
 
 // AUTORIZACIÓN DATOS PERSONALES
-} elseif ($method === 'POST' && ($uri === '/documents/procesar-actorizacion-datos-personales' || $uri === '/digitalizacion-documentos/documents/procesar-actorizacion-datos-personales')) {
+} elseif ($method === 'POST' && ($uri === '/documents/procesar-autorizacion-datos-personales' || $uri === '/digitalizacion-documentos/documents/procesar-autorizacion-datos-personales')) {
     $controller->procesarAutorizacionDatosPersonales();
 
 // CARTA CONOCIMIENTO ACEPTACIÓN
@@ -147,6 +147,36 @@ if ($uri === '/' || $uri === ''
 // BUSCAR EXPEDIENTE (API)
 } elseif ($uri === '/expedientes/buscar' || $uri === '/digitalizacion-documentos/expedientes/buscar') {
     $expedienteController->buscar();
+
+// Debug API
+} elseif ($method === 'GET' && ($uri === '/debug-api' || $uri === '/digitalizacion-documentos/debug-api')) {
+    $documentModel = new Document();
+    $centros = $documentModel->getCentrosCosto();
+    header('Content-Type: application/json');
+    echo json_encode($centros);
+    exit;
+    require_once __DIR__ . '/../debug_correos.php';
+    exit;
+
+} elseif ($method === 'GET' && ($uri === '/debug-aprobacion' || $uri === '/digitalizacion-documentos/debug-aprobacion' || $uri === '/debug_aprobacion.php' || $uri === '/digitalizacion-documentos/debug_aprobacion.php')) {
+    require_once __DIR__ . '/../debug_aprobacion.php';
+    exit;
+
+} elseif ($method === 'GET' && ($uri === '/debug-logs' || $uri === '/digitalizacion-documentos/debug-logs' || $uri === '/debug_logs.php' || $uri === '/digitalizacion-documentos/debug_logs.php')) {
+    require_once __DIR__ . '/../debug_logs.php';
+    exit;
+
+} elseif ($method === 'GET' && ($uri === '/debug-asesor' || $uri === '/digitalizacion-documentos/debug-asesor' || $uri === '/debug_asesor.php' || $uri === '/digitalizacion-documentos/debug_asesor.php')) {
+    require_once __DIR__ . '/../debug_asesor.php';
+    exit;
+
+} elseif ($method === 'GET' && ($uri === '/debug-sesion' || $uri === '/digitalizacion-documentos/debug-sesion' || $uri === '/debug_sesion.php' || $uri === '/digitalizacion-documentos/debug_sesion.php')) {
+    require_once __DIR__ . '/../debug_sesion.php';
+    exit;
+
+} elseif ($method === 'GET' && ($uri === '/debug-centros' || $uri === '/digitalizacion-documentos/debug-centros' || $uri === '/debug_centros.php' || $uri === '/digitalizacion-documentos/debug_centros.php')) {
+    require_once __DIR__ . '/../debug_centros.php';
+    exit;
 
 // ==========================
 // 404

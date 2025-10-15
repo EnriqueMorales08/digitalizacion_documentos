@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitud de Compra - Interamericana</title>
+    <script src="/digitalizacion-documentos/public/js/poblar_selects.js"></script>
     <style>
     * {
         margin: 0;
@@ -1108,113 +1109,6 @@
             });
         }
 
-        // Función para inicializar selects de centros de costo
-        function inicializarCentrosCosto() {
-            const agenciaSelect = document.getElementById('agencia');
-            const nombreSelect = document.getElementById('nombre_responsable');
-            const centroCostoSelect = document.getElementById('centro_costo');
-            const emailHidden = document.getElementById('email_centro_costo');
-            
-            console.log('🔄 Inicializando centros de costo...');
-            console.log('Agencia select:', agenciaSelect);
-            
-            // Cargar agencias al iniciar
-            const url = '/digitalizacion-documentos/documents/get-agencias';
-            console.log('📡 Llamando a:', url);
-            
-            fetch(url)
-                .then(response => {
-                    console.log('📥 Respuesta recibida:', response.status);
-                    if (!response.ok) {
-                        throw new Error('HTTP error! status: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(agencias => {
-                    console.log('✅ Agencias recibidas:', agencias);
-                    console.log('Total de agencias:', agencias.length);
-                    
-                    if (agencias.length === 0) {
-                        console.warn('⚠️ No se recibieron agencias');
-                        alert('No se pudieron cargar las agencias. Por favor recargue la página.');
-                        return;
-                    }
-                    
-                    agencias.forEach(agencia => {
-                        const option = document.createElement('option');
-                        option.value = agencia;
-                        option.textContent = agencia;
-                        agenciaSelect.appendChild(option);
-                    });
-                    
-                    console.log('✅ Agencias cargadas en el select');
-                })
-                .catch(error => {
-                    console.error('❌ Error al cargar agencias:', error);
-                    alert('Error al cargar agencias: ' + error.message);
-                });
-            
-            // Cuando cambia la agencia, cargar nombres
-            agenciaSelect.addEventListener('change', function() {
-                const agencia = this.value;
-                nombreSelect.innerHTML = '<option value="">-- Seleccione Responsable --</option>';
-                centroCostoSelect.innerHTML = '<option value="">-- Seleccione Centro --</option>';
-                nombreSelect.disabled = true;
-                centroCostoSelect.disabled = true;
-                emailHidden.value = '';
-                
-                if (agencia) {
-                    fetch('/digitalizacion-documentos/documents/get-nombres-por-agencia?agencia=' + encodeURIComponent(agencia))
-                        .then(response => response.json())
-                        .then(nombres => {
-                            nombres.forEach(nombre => {
-                                const option = document.createElement('option');
-                                option.value = nombre;
-                                option.textContent = nombre;
-                                nombreSelect.appendChild(option);
-                            });
-                            nombreSelect.disabled = false;
-                        })
-                        .catch(error => console.error('Error al cargar nombres:', error));
-                }
-            });
-            
-            // Cuando cambia el nombre, cargar centros de costo
-            nombreSelect.addEventListener('change', function() {
-                const agencia = agenciaSelect.value;
-                const nombre = this.value;
-                centroCostoSelect.innerHTML = '<option value="">-- Seleccione Centro --</option>';
-                centroCostoSelect.disabled = true;
-                emailHidden.value = '';
-                
-                if (agencia && nombre) {
-                    fetch('/digitalizacion-documentos/documents/get-centros-costo-por-nombre?agencia=' + encodeURIComponent(agencia) + '&nombre=' + encodeURIComponent(nombre))
-                        .then(response => response.json())
-                        .then(centros => {
-                            centros.forEach(centro => {
-                                const option = document.createElement('option');
-                                option.value = centro.CENTRO_COSTO;
-                                option.textContent = centro.CENTRO_COSTO + ' - ' + centro.NOMBRE_CC;
-                                option.dataset.email = centro.EMAIL;
-                                centroCostoSelect.appendChild(option);
-                            });
-                            centroCostoSelect.disabled = false;
-                        })
-                        .catch(error => console.error('Error al cargar centros de costo:', error));
-                }
-            });
-            
-            // Cuando cambia el centro de costo, guardar el email
-            centroCostoSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption && selectedOption.dataset.email) {
-                    emailHidden.value = selectedOption.dataset.email;
-                } else {
-                    emailHidden.value = '';
-                }
-            });
-        }
-
         // Agregar event listeners
         document.addEventListener('DOMContentLoaded', function() {
             const precioTotalInput = document.getElementsByName('OC_PRECIO_TOTAL_COMPRA')[0];
@@ -1258,8 +1152,7 @@
             // Inicializar autocompletado de datos de mantenimiento
             autocompletarDatosMantenimiento();
             
-            // Inicializar selects de centros de costo
-            inicializarCentrosCosto();
+            // Los selects de centros de costo se inicializan automáticamente con poblar_selects.js
 
             // Inicializar cálculos
             manejarBonoFinanciamiento();
