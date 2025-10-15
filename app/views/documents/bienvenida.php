@@ -136,7 +136,7 @@
     </p>
     
     <div class="d-grid gap-3">
-      <a href="/digitalizacion-documentos/documents/show?id=orden-compra" class="btn btn-generar">
+      <a href="#" onclick="generarNuevaOrden(event)" class="btn btn-generar">
         <i class="bi bi-file-earmark-plus"></i> Generar Orden de Compra
       </a>
       
@@ -159,5 +159,23 @@
   </div>
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function generarNuevaOrden(event) {
+      event.preventDefault();
+      // Limpiar sesión antes de generar nueva orden
+      fetch('/digitalizacion-documentos/documents/limpiar-sesion', {
+        method: 'POST'
+      })
+      .then(() => {
+        // Redirigir a la orden de compra con formulario limpio
+        window.location.href = '/digitalizacion-documentos/documents/show?id=orden-compra';
+      })
+      .catch(error => {
+        console.error('Error al limpiar sesión:', error);
+        // Redirigir de todas formas
+        window.location.href = '/digitalizacion-documentos/documents/show?id=orden-compra';
+      });
+    }
+  </script>
 </body>
 </html>

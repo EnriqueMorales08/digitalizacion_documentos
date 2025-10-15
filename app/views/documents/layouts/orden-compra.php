@@ -69,11 +69,51 @@
         input, select, textarea {
             border: none !important;
             background: transparent !important;
+            font-size: 8.5px !important;
+            padding: 1px !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        /* Reducir espacios */
+        div[style*="margin"] {
+            margin: 2px auto !important;
+        }
+
+        div[style*="padding"] {
+            padding: 2px !important;
+        }
+
+        /* Reducir altura de firmas */
+        div[style*="height:70px"] {
+            height: 50px !important;
+        }
+
+        /* Reducir tamaño de texto */
+        div, span, p, li {
+            font-size: 7.5px !important;
+            line-height: 1.2 !important;
+        }
+
+        /* Reducir altura de textarea */
+        textarea {
+            height: 30px !important;
+        }
+
+        /* Reducir tamaño del header */
+        .header {
+            padding: 4px !important;
+        }
+
+        .header-left img {
+            width: 150px !important;
         }
 
         @page {
             size: A4;
-            margin: 10mm;
+            margin: 6mm;
         }
     }
 
@@ -142,7 +182,7 @@
       $urlRegreso = '/digitalizacion-documentos/expedientes/ver?id=' . $_SESSION['orden_id'];
   }
   ?>
-  <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+  <div class="no-print" style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
     <a href="<?= $urlRegreso ?>" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); font-family: Arial, sans-serif; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -200,13 +240,22 @@
             <div style="background:#ffffff; font-weight:bold; padding:4px;">ASESOR</div>
             <select id="asesor_venta" name="OC_ASESOR_VENTA" style="width:200px; max-width:200px;">
                 <option value="">-- Seleccione Asesor --</option>
-                <?php if (isset($asesores) && is_array($asesores)): ?>
-                    <?php foreach ($asesores as $asesor): ?>
+                <?php 
+                // Debug temporal
+                if (!isset($asesores)) {
+                    echo '<option value="">ERROR: Variable $asesores no existe</option>';
+                } elseif (!is_array($asesores)) {
+                    echo '<option value="">ERROR: $asesores no es un array</option>';
+                } elseif (empty($asesores)) {
+                    echo '<option value="">ERROR: $asesores está vacío</option>';
+                } else {
+                    foreach ($asesores as $asesor): ?>
                         <option value="<?php echo htmlspecialchars($asesor['nombre']); ?>">
                             <?php echo htmlspecialchars($asesor['nombre']); ?>
                         </option>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    <?php endforeach;
+                }
+                ?>
             </select>
         </div>
     </div>
@@ -690,7 +739,7 @@
 
                 <!-- Otros documentos -->
                 <div id="otros-container"></div>
-                <button type="button" onclick="agregarOtro()" style="margin-top:10px; margin-left:5px; margin-bottom:5px; padding:3px 8px; background:#27769c; color:white; border:none; border-radius:3px; font-size:10px;">Agregar Otro Documento</button>
+                <button type="button" onclick="agregarOtro()" class="no-print" style="margin-top:10px; margin-left:5px; margin-bottom:5px; padding:3px 8px; background:#27769c; color:white; border:none; border-radius:3px; font-size:10px;">Agregar Otro Documento</button>
             </div>
         </div>
     </div>
@@ -707,15 +756,15 @@
 <div style="display:flex; justify-content:space-between; width:774px; margin:15px auto 5px;">
     <!-- Asesor de venta -->
     <div style="flex:1; border:1px solid #000; margin-right:5px; display:flex; flex-direction:column; justify-content:space-between; height:70px;">
-        <div></div>
+        <div><?php if (!empty($ordenCompraData['OC_ASESOR_FIRMA'])): ?><img src="<?= htmlspecialchars($ordenCompraData['OC_ASESOR_FIRMA']) ?>" style="max-width:100%; max-height:50px; display:block; margin:0 auto;"><?php endif; ?></div>
         <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; cursor:pointer;" onclick="mostrarLogin(this, 'asesor')">ASESOR DE VENTA</div>
     </div>
 
     <!-- Firma cliente + Huella digital -->
     <div style="flex:2.8; border:1px solid #000; margin-right:5px; display:flex; flex-direction:column; justify-content:space-between; height:70px;">
         <div style="flex:1; display:flex;">
-            <div style="flex:1;"></div>
-            <div style="width:150px;"></div>
+            <div style="flex:1;"><?php if (!empty($ordenCompraData['OC_CLIENTE_FIRMA'])): ?><img src="<?= htmlspecialchars($ordenCompraData['OC_CLIENTE_FIRMA']) ?>" style="max-width:100%; max-height:50px; display:block; margin:0 auto;"><?php endif; ?></div>
+            <div style="width:150px;"><?php if (!empty($ordenCompraData['OC_CLIENTE_HUELLA'])): ?><img src="<?= htmlspecialchars($ordenCompraData['OC_CLIENTE_HUELLA']) ?>" style="max-width:100%; max-height:50px; display:block; margin:0 auto;"><?php endif; ?></div>
         </div>
         <div style="display:flex;">
             <div style="flex:1; background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; border-right:1px solid #000; cursor:pointer;" onclick="mostrarLogin(this, 'cliente')">FIRMA CLIENTE</div>
@@ -727,7 +776,7 @@
 <div style="display:flex; justify-content:space-between; width:774px; margin:0 auto 10px;">
     <!-- Jefe de tienda -->
     <div style="flex:1; border:1px solid #000; margin-right:5px; display:flex; flex-direction:column; justify-content:space-between; height:70px;">
-        <div></div>
+        <div><?php if (!empty($ordenCompraData['OC_JEFE_FIRMA'])): ?><img src="<?= htmlspecialchars($ordenCompraData['OC_JEFE_FIRMA']) ?>" style="max-width:100%; max-height:50px; display:block; margin:0 auto;"><?php endif; ?></div>
         <div style="background:#ccc; text-align:center; font-weight:bold; padding:2px; font-size:10px; cursor:pointer;" onclick="mostrarLogin(this, 'jefe')">JEFE DE TIENDA</div>
     </div>
 
@@ -757,10 +806,13 @@
     </ol>
 </div>
 
-<!-- Botón de envío -->
-<div style="width:774px; margin:20px auto; text-align:center;">
+<!-- Botones de acción -->
+<div class="no-print" style="width:774px; margin:20px auto; text-align:center; display:flex; gap:15px; justify-content:center;">
     <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s ease;">
         💾 GUARDAR ORDEN DE COMPRA
+    </button>
+    <button type="button" onclick="limpiarFormulario()" style="background: linear-gradient(135deg, #3b82f6, #1e3a8a); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.3s ease;">
+        NUEVA ORDEN
     </button>
 </div>
 
@@ -1190,6 +1242,25 @@
                 if (firmasData.OC_JEFE_HUELLA) document.getElementById('jefe_huella_hidden').value = firmasData.OC_JEFE_HUELLA;
                 if (firmasData.OC_VISTO_ADV) document.getElementById('visto_adv_hidden').value = firmasData.OC_VISTO_ADV;
             });
+        }
+
+        // Función para limpiar el formulario y generar nueva orden
+        function limpiarFormulario() {
+            if (confirm('¿Estás seguro de que deseas generar una nueva orden? Se limpiarán todos los datos del formulario actual.')) {
+                // Limpiar sesión en el servidor
+                fetch('/digitalizacion-documentos/documents/limpiar-sesion', {
+                    method: 'POST'
+                })
+                .then(() => {
+                    // Recargar la página para mostrar formulario limpio
+                    window.location.href = '/digitalizacion-documentos/documents/show?id=orden-compra';
+                })
+                .catch(error => {
+                    console.error('Error al limpiar sesión:', error);
+                    // Recargar de todas formas
+                    window.location.href = '/digitalizacion-documentos/documents/show?id=orden-compra';
+                });
+            }
         }
     </script>
     <script src="/digitalizacion-documentos/public/js/cargar_datos_sesion.js"></script>

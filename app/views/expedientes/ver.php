@@ -63,15 +63,26 @@
                     <a href="/digitalizacion-documentos/expedientes" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
-                    <button onclick="imprimirTodos('<?= urlencode($ordenCompra['OC_NUMERO_EXPEDIENTE']) ?>')" 
-                   class="btn btn-success">
-                        <i class="bi bi-printer"></i> Imprimir Todos
-                    </button>
+                    <?php 
+                    $estado = $ordenCompra['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+                    if ($estado === 'APROBADO'): 
+                    ?>
+                        <button onclick="imprimirTodos('<?= urlencode($ordenCompra['OC_NUMERO_EXPEDIENTE']) ?>')" 
+                                class="btn btn-success">
+                            <i class="bi bi-printer"></i> Imprimir Todos
+                        </button>
+                    <?php else: ?>
+                        <button class="btn btn-secondary" disabled 
+                                title="Solo se puede imprimir cuando esté APROBADO">
+                            <i class="bi bi-printer"></i> Imprimir Todos
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <!-- Información del Cliente -->
             <div class="expediente-info">
+                <div class="row">
                     <div class="col-md-6">
                         <h5><i class="bi bi-person-circle"></i> Información del Cliente</h5>
                         <p class="mb-1"><strong>Nombre:</strong> <?= htmlspecialchars($ordenCompra['OC_COMPRADOR_NOMBRE'] ?? 'N/A') ?></p>
@@ -88,7 +99,18 @@
                         <h5><i class="bi bi-car-front-fill"></i> Información del Vehículo</h5>
                         <p class="mb-1"><strong>Marca:</strong> <?= htmlspecialchars($ordenCompra['OC_VEHICULO_MARCA'] ?? 'N/A') ?></p>
                         <p class="mb-1"><strong>Modelo:</strong> <?= htmlspecialchars($ordenCompra['OC_VEHICULO_MODELO'] ?? 'N/A') ?></p>
-                        <p class="mb-0"><strong>Chasis:</strong> <?= htmlspecialchars($ordenCompra['OC_VEHICULO_CHASIS'] ?? 'N/A') ?></p>
+                        <p class="mb-1"><strong>Chasis:</strong> <?= htmlspecialchars($ordenCompra['OC_VEHICULO_CHASIS'] ?? 'N/A') ?></p>
+                        <p class="mb-0">
+                            <?php 
+                            $estado = $ordenCompra['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+                            $badgeClass = $estado === 'APROBADO' ? 'bg-success' : ($estado === 'RECHAZADO' ? 'bg-danger' : 'bg-warning text-dark');
+                            $icono = $estado === 'APROBADO' ? 'check-circle' : ($estado === 'RECHAZADO' ? 'x-circle' : 'clock');
+                            ?>
+                            <strong>Estado:</strong> 
+                            <span class="badge <?= $badgeClass ?>">
+                                <i class="bi bi-<?= $icono ?>"></i> <?= $estado ?>
+                            </span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -108,10 +130,17 @@
                            class="btn btn-primary btn-sm me-2" target="_blank">
                             <i class="bi bi-eye"></i> Ver
                         </a>
-                        <button onclick="imprimirDocumento('<?= htmlspecialchars($ordenCompra['OC_NUMERO_EXPEDIENTE']) ?>', 'orden-compra')" 
-                           class="btn btn-success btn-sm">
-                            <i class="bi bi-printer"></i> Imprimir
-                        </button>
+                        <?php if ($estado === 'APROBADO'): ?>
+                            <button onclick="imprimirDocumento('<?= htmlspecialchars($ordenCompra['OC_NUMERO_EXPEDIENTE']) ?>', 'orden-compra')" 
+                               class="btn btn-success btn-sm">
+                                <i class="bi bi-printer"></i> Imprimir
+                            </button>
+                        <?php else: ?>
+                            <button class="btn btn-secondary btn-sm" disabled 
+                                    title="Solo se puede imprimir cuando esté APROBADO">
+                                <i class="bi bi-printer"></i> Imprimir
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -175,10 +204,17 @@
                                    class="btn btn-primary btn-sm me-2" target="_blank">
                                     <i class="bi bi-eye"></i> Ver
                                 </a>
-                                <button onclick="imprimirDocumento('<?= urlencode($ordenCompra['OC_NUMERO_EXPEDIENTE']) ?>', '<?= $docId ?>')" 
-                                   class="btn btn-success btn-sm">
-                                    <i class="bi bi-printer"></i> Imprimir
-                                </button>
+                                <?php if ($estado === 'APROBADO'): ?>
+                                    <button onclick="imprimirDocumento('<?= urlencode($ordenCompra['OC_NUMERO_EXPEDIENTE']) ?>', '<?= $docId ?>')" 
+                                       class="btn btn-success btn-sm">
+                                        <i class="bi bi-printer"></i> Imprimir
+                                    </button>
+                                <?php else: ?>
+                                    <button class="btn btn-secondary btn-sm" disabled 
+                                            title="Solo se puede imprimir cuando esté APROBADO">
+                                        <i class="bi bi-printer"></i> Imprimir
+                                    </button>
+                                <?php endif; ?>
                             <?php else: ?>
                                 <a href="/digitalizacion-documentos/documents/show?id=<?= $docId ?>" 
                                    class="btn btn-outline-secondary btn-sm">

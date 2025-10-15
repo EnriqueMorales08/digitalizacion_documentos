@@ -216,4 +216,53 @@ class DocumentController {
             }
         }
     }
+
+    // Imprimir documentos desde panel de aprobación (redirige a ExpedienteController)
+    public function imprimir() {
+        if (!isset($_GET['id'])) {
+            header("Location: /digitalizacion-documentos/aprobacion/panel");
+            exit;
+        }
+
+        $ordenId = (int)$_GET['id'];
+
+        // Obtener la orden de compra
+        $ordenCompra = $this->documentModel->getOrdenCompra($ordenId);
+
+        if (!$ordenCompra) {
+            header("Location: /digitalizacion-documentos/aprobacion/panel?error=" . urlencode('Orden no encontrada'));
+            exit;
+        }
+
+        // Verificar que esté aprobada
+        $estadoAprobacion = $ordenCompra['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+        if ($estadoAprobacion !== 'APROBADO') {
+            $mensaje = $estadoAprobacion === 'RECHAZADO'
+                ? 'No se puede imprimir. La orden fue RECHAZADA.'
+                : 'No se puede imprimir. La orden está PENDIENTE de aprobación.';
+            header("Location: /digitalizacion-documentos/aprobacion/panel?id={$ordenId}&error=" . urlencode($mensaje));
+            exit;
+        }
+
+        // Redirigir a la funcionalidad de impresión usando el número de expediente
+        $numeroExpediente = $ordenCompra['OC_NUMERO_EXPEDIENTE'];
+        header("Location: /digitalizacion-documentos/expedientes/imprimir-todos?numero=" . urlencode($numeroExpediente));
+        exit;
+    }
+
+    // Limpiar sesión para generar nueva orden
+    public function limpiarSesion() {
+        // Limpiar solo las variables relacionadas con la orden
+        unset($_SESSION['orden_id']);
+        unset($_SESSION['orden_data']);
+        unset($_SESSION['firmas']);
+        unset($_SESSION['orden_guardada']);
+        unset($_SESSION['forma_pago']);
+        unset($_SESSION['banco_abono']);
+        
+        // Retornar respuesta JSON
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
+    }
 }

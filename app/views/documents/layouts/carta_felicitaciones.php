@@ -106,10 +106,53 @@
     @media print {
       body {
         background: #fff;
+        font-size: 9px;
       }
 
       .page {
         box-shadow: none;
+        padding: 15px !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .header {
+        margin-bottom: 10px !important;
+      }
+
+      .header img {
+        height: 50px !important;
+      }
+
+      .title {
+        font-size: 11pt !important;
+        margin: 10px 0 !important;
+      }
+
+      p, li, span {
+        font-size: 8px !important;
+        line-height: 1.3 !important;
+        margin: 3px 0 !important;
+      }
+
+      .content {
+        margin: 10px 0 !important;
+      }
+
+      .signature-section {
+        margin-top: 15px !important;
+      }
+
+      ul {
+        margin: 5px 0 !important;
+        padding-left: 15px !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 10mm;
       }
     }
   </style>
@@ -123,7 +166,7 @@
       $urlRegreso = '/digitalizacion-documentos/expedientes/ver?id=' . $_SESSION['orden_id'];
   }
   ?>
-  <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+  <div class="no-print" style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
     <a href="<?= $urlRegreso ?>" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); font-family: Arial, sans-serif; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

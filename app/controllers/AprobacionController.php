@@ -21,13 +21,8 @@ class AprobacionController {
             die('Orden de compra no encontrada');
         }
 
-        // Verificar que esté pendiente
-        if ($orden['OC_ESTADO_APROBACION'] !== 'PENDIENTE') {
-            $mensaje = $orden['OC_ESTADO_APROBACION'] === 'APROBADO' 
-                ? 'Esta orden ya fue aprobada' 
-                : 'Esta orden ya fue rechazada';
-            die($mensaje);
-        }
+        // Ahora permitimos mostrar el panel aunque esté aprobado o rechazado
+        // La lógica de qué mostrar se maneja en la vista
 
         require_once __DIR__ . '/../views/aprobacion/panel.php';
     }
@@ -47,6 +42,23 @@ class AprobacionController {
         if (!$ordenId || !in_array($accion, ['aprobar', 'rechazar'])) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Datos inválidos']);
+            exit;
+        }
+
+        // Obtener la orden actual para verificar su estado
+        $orden = $this->documentModel->getOrdenCompra($ordenId);
+        if (!$orden) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Orden no encontrada']);
+            exit;
+        }
+
+        $estadoActual = $orden['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+
+        // Validar acciones permitidas según estado
+        if ($accion === 'aprobar' && $estadoActual !== 'PENDIENTE') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Solo se pueden aprobar órdenes pendientes']);
             exit;
         }
 

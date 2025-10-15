@@ -1,0 +1,34 @@
+-- Script para corregir tamaño de campos en SIST_CARTA_RECEPCION
+-- Esto soluciona el error: "Los datos de cadena o binarios se truncarían"
+
+USE [DOC_DIGITALES]
+GO
+
+PRINT '🔧 Corrigiendo campos de SIST_CARTA_RECEPCION...';
+
+-- Ampliar CR_FECHA_DIA de NVARCHAR(2) a NVARCHAR(10)
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_CARTA_RECEPCION') AND name = 'CR_FECHA_DIA')
+BEGIN
+    ALTER TABLE SIST_CARTA_RECEPCION ALTER COLUMN CR_FECHA_DIA NVARCHAR(10);
+    PRINT '✅ Campo CR_FECHA_DIA ampliado a NVARCHAR(10)';
+END
+GO
+
+-- Ampliar CR_FECHA_MES de NVARCHAR(20) a NVARCHAR(50)
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_CARTA_RECEPCION') AND name = 'CR_FECHA_MES')
+BEGIN
+    ALTER TABLE SIST_CARTA_RECEPCION ALTER COLUMN CR_FECHA_MES NVARCHAR(50);
+    PRINT '✅ Campo CR_FECHA_MES ampliado a NVARCHAR(50)';
+END
+GO
+
+-- Ampliar CR_FECHA_ANIO de NVARCHAR(4) a NVARCHAR(10)
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_CARTA_RECEPCION') AND name = 'CR_FECHA_ANIO')
+BEGIN
+    ALTER TABLE SIST_CARTA_RECEPCION ALTER COLUMN CR_FECHA_ANIO NVARCHAR(10);
+    PRINT '✅ Campo CR_FECHA_ANIO ampliado a NVARCHAR(10)';
+END
+GO
+
+PRINT '✅ Corrección completada exitosamente';
+GO

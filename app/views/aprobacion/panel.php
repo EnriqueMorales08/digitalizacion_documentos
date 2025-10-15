@@ -90,6 +90,16 @@
             color: #856404;
         }
 
+        .estado.aprobado {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .estado.rechazado {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         .observaciones {
             margin: 30px 0;
         }
@@ -207,7 +217,12 @@
                 <div class="info-item">
                     <label>Estado</label>
                     <div class="value">
-                        <span class="estado pendiente">⏳ Pendiente</span>
+                        <?php
+                        $estado = $orden['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
+                        $estadoClass = strtolower($estado);
+                        $estadoEmoji = $estado === 'PENDIENTE' ? '⏳' : ($estado === 'APROBADO' ? '✅' : '❌');
+                        ?>
+                        <span class="estado <?= $estadoClass ?>"><?= $estadoEmoji ?> <?= htmlspecialchars($estado) ?></span>
                     </div>
                 </div>
 
@@ -232,15 +247,34 @@
                 </div>
 
                 <div class="info-item">
-                    <label>Versión</label>
-                    <div class="value"><?= htmlspecialchars($orden['OC_VEHICULO_VERSION'] ?? 'N/A') ?></div>
+                    <label>Chasis</label>
+                    <div class="value"><?= htmlspecialchars($orden['OC_VEHICULO_CHASIS'] ?? 'N/A') ?></div>
                 </div>
 
                 <div class="info-item">
                     <label>Precio de Venta</label>
                     <div class="value">
-                        <?= htmlspecialchars($orden['OC_MONEDA_PRECIO_VENTA'] ?? '') ?> 
-                        <?= number_format($orden['OC_PRECIO_VENTA'] ?? 0, 2) ?>
+                        <?php 
+                        $precio = $orden['OC_PRECIO_VENTA'] ?? 0;
+                        echo $precio ? 'S/ ' . number_format($precio, 2) : 'N/A';
+                        ?>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <label>Fecha de Aprobación</label>
+                    <div class="value">
+                        <?php 
+                        if (!empty($orden['OC_FECHA_APROBACION'])) {
+                            if ($orden['OC_FECHA_APROBACION'] instanceof DateTime) {
+                                echo $orden['OC_FECHA_APROBACION']->format('d/m/Y H:i');
+                            } else {
+                                echo htmlspecialchars(date('d/m/Y H:i', strtotime($orden['OC_FECHA_APROBACION'])));
+                            }
+                        } else {
+                            echo 'Pendiente';
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -251,12 +285,18 @@
             </div>
 
             <div class="actions">
-                <button class="btn btn-aprobar" onclick="procesarDecision('aprobar')">
+                <?php if (($orden['OC_ESTADO_APROBACION'] ?? 'PENDIENTE') === 'PENDIENTE'): ?>
+                <button class="btn btn-aprobar" onclick="procesarDecision('aprobar')" id="btnAprobar">
                     ✓ Aprobar Orden
                 </button>
-                <button class="btn btn-rechazar" onclick="procesarDecision('rechazar')">
+                <button class="btn btn-rechazar" onclick="procesarDecision('rechazar')" id="btnRechazar">
                     ✗ Rechazar Orden
                 </button>
+                <?php else: ?>
+                <div style="text-align: center; color: #666; padding: 20px;">
+                    Esta orden ya fue procesada (<?= htmlspecialchars($orden['OC_ESTADO_APROBACION']) ?>)
+                </div>
+                <?php endif; ?>
             </div>
 
             <div id="mensaje" class="mensaje"></div>
@@ -267,8 +307,8 @@
         function procesarDecision(accion) {
             const observaciones = document.getElementById('observaciones').value;
             const mensaje = document.getElementById('mensaje');
-            const btnAprobar = document.querySelector('.btn-aprobar');
-            const btnRechazar = document.querySelector('.btn-rechazar');
+            const btnAprobar = document.getElementById('btnAprobar');
+            const btnRechazar = document.getElementById('btnRechazar');
 
             // Confirmar acción
             const textoConfirmacion = accion === 'aprobar' 
@@ -304,14 +344,21 @@
                         ? '✓ Orden aprobada exitosamente. Se ha enviado notificación al asesor.' 
                         : '✓ Orden rechazada. Se ha enviado notificación al asesor.';
                     
-                    // Ocultar botones
+                    // Ocultar botones de aprobación
                     btnAprobar.style.display = 'none';
                     btnRechazar.style.display = 'none';
                     
-                    // Redirigir después de 3 segundos
+                    // Actualizar el estado en la interfaz INMEDIATAMENTE
+                    if (accion === 'aprobar') {
+                        actualizarEstadoEnInterfaz('APROBADO');
+                    } else {
+                        actualizarEstadoEnInterfaz('RECHAZADO');
+                    }
+                    
+                    // Recargar después de mostrar el cambio
                     setTimeout(() => {
-                        window.location.reload();
-                    }, 3000);
+                        location.reload();
+                    }, 2000);
                 } else {
                     mensaje.className = 'mensaje error';
                     mensaje.style.display = 'block';
@@ -336,6 +383,18 @@
                 btnAprobar.textContent = '✓ Aprobar Orden';
                 btnRechazar.textContent = '✗ Rechazar Orden';
             });
+        }
+
+        function actualizarEstadoEnInterfaz(nuevoEstado) {
+            const estadoElement = document.querySelector('.estado');
+            if (estadoElement) {
+                const emoji = nuevoEstado === 'APROBADO' ? '✅' : '❌';
+                const texto = nuevoEstado;
+                const clase = nuevoEstado.toLowerCase();
+
+                estadoElement.textContent = emoji + ' ' + texto;
+                estadoElement.className = 'estado ' + clase;
+            }
         }
     </script>
 </body>

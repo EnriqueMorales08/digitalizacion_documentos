@@ -15,8 +15,101 @@
             }
             body {
                 background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .print-header {
+                display: none !important;
+            }
+            .documento-section {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .documento-section h2 {
+                display: none !important;
+            }
+            
+            /* Estilos específicos para cada documento */
+            
+            /* Orden de Compra */
+            input, select, textarea {
+                border: none !important;
+                background: transparent !important;
+                font-size: 8.5px !important;
+                padding: 1px !important;
+            }
+            
+            div[style*="margin"] {
+                margin: 2px auto !important;
+            }
+            
+            div[style*="padding"] {
+                padding: 2px !important;
+            }
+            
+            div[style*="height:70px"] {
+                height: 50px !important;
+            }
+            
+            div, span, p, li {
+                font-size: 7.5px !important;
+                line-height: 1.2 !important;
+            }
+            
+            textarea {
+                height: 30px !important;
+            }
+            
+            .header {
+                padding: 4px !important;
+            }
+            
+            .header-left img {
+                width: 150px !important;
+            }
+            
+            /* Cartas y documentos */
+            .page {
+                box-shadow: none !important;
+                padding: 15px !important;
+            }
+            
+            .header img {
+                height: 50px !important;
+            }
+            
+            .title, h2 {
+                font-size: 11pt !important;
+                margin: 10px 0 !important;
+            }
+            
+            .date-section {
+                margin-bottom: 15px !important;
+            }
+            
+            .content {
+                margin: 10px 0 !important;
+            }
+            
+            .signature-section, .firma-section {
+                margin-top: 15px !important;
+            }
+            
+            .firma-box {
+                height: 50px !important;
+            }
+            
+            ul, ol {
+                margin: 5px 0 !important;
+                padding-left: 15px !important;
+            }
+            
+            @page {
+                size: A4;
+                margin: 10mm;
             }
         }
+        
         body {
             background: white;
             padding: 20px;

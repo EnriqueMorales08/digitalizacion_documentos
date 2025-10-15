@@ -120,10 +120,53 @@
     @media print {
       body {
         background: #fff;
+        font-size: 9px;
       }
 
       .page {
         box-shadow: none;
+        padding: 15px !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .header {
+        margin-bottom: 10px !important;
+      }
+
+      .header img {
+        height: 50px !important;
+      }
+
+      h2 {
+        font-size: 11pt !important;
+        margin: 10px 0 !important;
+      }
+
+      p, li {
+        font-size: 8px !important;
+        line-height: 1.3 !important;
+        margin: 3px 0 !important;
+      }
+
+      .firma-section {
+        margin-top: 15px !important;
+      }
+
+      .firma-box {
+        height: 50px !important;
+      }
+
+      ul, ol {
+        margin: 5px 0 !important;
+        padding-left: 15px !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 10mm;
       }
     }
   </style>

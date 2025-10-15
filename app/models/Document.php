@@ -108,6 +108,15 @@ class Document {
             // Inicializar estado de aprobación como PENDIENTE
             $data['OC_ESTADO_APROBACION'] = 'PENDIENTE';
             
+            // Guardar el email y nombre del usuario LOGUEADO (asesor que crea la orden)
+            // Esto es necesario para enviarle el correo cuando se apruebe/rechace la orden
+            if (isset($_SESSION['usuario_email'])) {
+                $data['OC_USUARIO_EMAIL'] = $_SESSION['usuario_email'];
+            }
+            if (isset($_SESSION['usuario_nombre_completo'])) {
+                $data['OC_USUARIO_NOMBRE'] = $_SESSION['usuario_nombre_completo'];
+            }
+            
             // Filtrar solo campos OC_ y truncar si es necesario
             $fields = [];
             $placeholders = [];
@@ -251,26 +260,39 @@ class Document {
             $modelo = $orden['OC_VEHICULO_MODELO'] ?? '';
             $vehiculo = trim($marca . ' ' . $modelo) ?: 'No especificado';
             $asesor = $orden['OC_ASESOR_VENTA'] ?? 'No especificado';
+            $chasis = $orden['OC_VEHICULO_CHASIS'] ?? 'No especificado';
+            $precio = $orden['OC_PRECIO_VENTA'] ?? 0;
+            $precioFormateado = $precio ? 'S/ ' . number_format($precio, 2) : 'No especificado';
             
             // Construir el HTML del correo
             $htmlBody = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                <h2 style='color: #1e3a8a;'>Orden de Compra Pendiente de Aprobación</h2>
-                <p><strong>Número de Expediente:</strong> {$numeroExpediente}</p>
-                <p><strong>Cliente:</strong> {$cliente}</p>
-                <p><strong>Vehículo:</strong> {$vehiculo}</p>
-                <p><strong>Asesor:</strong> {$asesor}</p>
-                <p><strong>Estado:</strong> <span style='color: orange;'>Pendiente de aprobación</span></p>
-                <br>
-                <p>
+                <h2 style='color: #1e3a8a;'>📝 Orden de Compra Pendiente de Aprobación</h2>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p><strong>Número de Expediente:</strong> {$numeroExpediente}</p>
+                    <p><strong>Cliente:</strong> {$cliente}</p>
+                    <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 15px 0;'>
+                    <p><strong>Vehículo:</strong> {$vehiculo}</p>
+                    <p><strong>Marca:</strong> {$marca}</p>
+                    <p><strong>Modelo:</strong> {$modelo}</p>
+                    <p><strong>Chasis:</strong> {$chasis}</p>
+                    <p><strong>Precio:</strong> {$precioFormateado}</p>
+                    <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 15px 0;'>
+                    <p><strong>Asesor:</strong> {$asesor}</p>
+                    <p><strong>Estado:</strong> <span style='color: orange; font-weight: bold;'>⏳ Pendiente de aprobación</span></p>
+                </div>
+                
+                <p style='text-align: center;'>
                     <a href='{$urlAprobacion}' 
-                       style='background-color: #1e3a8a; color: white; padding: 12px 24px; 
-                              text-decoration: none; border-radius: 4px; display: inline-block;'>
-                        Ver Orden Pendiente
+                       style='background-color: #1e3a8a; color: white; padding: 15px 30px; 
+                              text-decoration: none; border-radius: 8px; display: inline-block;
+                              font-weight: bold; font-size: 16px;'>
+                        👁️ Ver y Aprobar Orden
                     </a>
                 </p>
                 <br>
-                <p style='color: #666; font-size: 12px;'>
+                <p style='color: #666; font-size: 12px; text-align: center;'>
                     Este correo fue generado automáticamente. Por favor no responder.
                 </p>
             </div>
@@ -479,11 +501,8 @@ class Document {
         sqlsrv_close($docDigitalesConn);
         
         if ($row) {
-            // Guardar datos del usuario en sesión
-            $_SESSION['usuario_email'] = $row['firma_mail'];
-            $_SESSION['usuario_nombre'] = $row['firma_nombre'];
-            $_SESSION['usuario_apellido'] = $row['firma_apellido'];
-            $_SESSION['usuario_nombre_completo'] = trim($row['firma_nombre'] . ' ' . $row['firma_apellido']);
+            // NO guardar en sesión - solo retornar la firma
+            // La sesión debe mantenerse con el usuario que hizo login
             return 'http://190.238.78.104:3800' . $row['firma_data'];
         }
         return null;
@@ -652,13 +671,14 @@ class Document {
         error_log("Orden ID: {$orden['OC_ID']}, Estado: $estado");
 
         try {
-            // IMPORTANTE: El correo se envía al usuario que está logueado (quien creó la orden)
-            // NO al asesor seleccionado en el formulario
-            $emailAsesor = $_SESSION['usuario_email'] ?? null;
-            $nombreAsesor = $_SESSION['usuario_nombre_completo'] ?? 'Asesor';
+            // IMPORTANTE: El correo se envía al ASESOR que CREÓ la orden
+            // El email se obtiene de la orden (guardado al momento de crearla)
+            $emailAsesor = $orden['OC_USUARIO_EMAIL'] ?? null;
+            $nombreAsesor = $orden['OC_USUARIO_NOMBRE'] ?? 'Asesor';
 
             if (!$emailAsesor) {
-                error_log("ERROR: No hay email en la sesión del usuario logueado");
+                error_log("ERROR: No hay email del asesor guardado en la orden");
+                error_log("Orden completa: " . print_r($orden, true));
                 return false;
             }
 
@@ -917,7 +937,8 @@ class Document {
             
             // Obtener registros paginados
             $sql = "SELECT OC_ID, OC_NUMERO_EXPEDIENTE, OC_COMPRADOR_NOMBRE, OC_COMPRADOR_NUMERO_DOCUMENTO, 
-                           OC_VEHICULO_MARCA, OC_VEHICULO_MODELO, OC_FECHA_ORDEN, OC_FECHA_CREACION
+                           OC_VEHICULO_MARCA, OC_VEHICULO_MODELO, OC_FECHA_ORDEN, OC_FECHA_CREACION,
+                           OC_ESTADO_APROBACION
                     FROM SIST_ORDEN_COMPRA 
                     $whereClause
                     ORDER BY OC_FECHA_CREACION DESC

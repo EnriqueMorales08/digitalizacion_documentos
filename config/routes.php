@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../app/controllers/DocumentController.php';
 require_once __DIR__ . '/../app/controllers/ExpedienteController.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
+require_once __DIR__ . '/../app/controllers/AprobacionController.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
@@ -72,21 +73,31 @@ if ($uri === '/' || $uri === ''
 } elseif ($method === 'GET' && ($uri === '/documents/get-centros-costo-por-nombre' || $uri === '/digitalizacion-documentos/documents/get-centros-costo-por-nombre')) {
     $controller->getCentrosCostoPorNombre();
 
-// PANEL DE APROBACIÓN
+// ==========================
+// RUTAS DE APROBACIÓN
+// ==========================
+
+// MOSTRAR PANEL DE APROBACIÓN
 } elseif ($method === 'GET' && ($uri === '/aprobacion/panel' || $uri === '/digitalizacion-documentos/aprobacion/panel')) {
-    require_once __DIR__ . '/../app/controllers/AprobacionController.php';
     $aprobacionController = new AprobacionController();
     $aprobacionController->panel();
 
-// PROCESAR APROBACIÓN
+// PROCESAR APROBACIÓN O RECHAZO
 } elseif ($method === 'POST' && ($uri === '/aprobacion/procesar' || $uri === '/digitalizacion-documentos/aprobacion/procesar')) {
-    require_once __DIR__ . '/../app/controllers/AprobacionController.php';
     $aprobacionController = new AprobacionController();
     $aprobacionController->procesar();
+
+// IMPRIMIR DESDE PANEL DE APROBACIÓN (por ID)
+} elseif ($method === 'GET' && ($uri === '/documents/imprimir' || $uri === '/digitalizacion-documentos/documents/imprimir')) {
+    $controller->imprimir();
 
 // VERIFICAR FIRMA
 } elseif ($method === 'POST' && ($uri === '/documents/verificar-firma' || $uri === '/digitalizacion-documentos/documents/verificar-firma')) {
     $controller->verificarFirma();
+
+// LIMPIAR SESIÓN (para nueva orden)
+} elseif ($method === 'POST' && ($uri === '/documents/limpiar-sesion' || $uri === '/digitalizacion-documentos/documents/limpiar-sesion')) {
+    $controller->limpiarSesion();
 
 // GUARDAR DOCUMENTO INDIVIDUAL
 } elseif ($method === 'POST' && ($uri === '/documents/guardar-documento' || $uri === '/digitalizacion-documentos/documents/guardar-documento')) {

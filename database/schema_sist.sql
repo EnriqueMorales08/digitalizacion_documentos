@@ -161,7 +161,11 @@ CREATE TABLE SIST_ORDEN_COMPRA (
     -- CAMPOS DE APROBACIÓN
     OC_ESTADO_APROBACION NVARCHAR(20) DEFAULT 'PENDIENTE', -- PENDIENTE, APROBADO, RECHAZADO
     OC_FECHA_APROBACION DATETIME,
-    OC_OBSERVACIONES_APROBACION NVARCHAR(500)
+    OC_OBSERVACIONES_APROBACION NVARCHAR(500),
+    
+    -- CAMPOS DE USUARIO CREADOR (para notificaciones)
+    OC_USUARIO_EMAIL NVARCHAR(255), -- Email del asesor que crea la orden
+    OC_USUARIO_NOMBRE NVARCHAR(255) -- Nombre del asesor que crea la orden
 );
 ;
 
@@ -256,9 +260,9 @@ CREATE TABLE SIST_CARTA_RECEPCION (
     CR_DOCUMENTO_VENTA_ID INT,
 
     -- Fechas
-    CR_FECHA_DIA NVARCHAR(2),
-    CR_FECHA_MES NVARCHAR(20),
-    CR_FECHA_ANIO NVARCHAR(4),
+    CR_FECHA_DIA NVARCHAR(10),
+    CR_FECHA_MES NVARCHAR(50),
+    CR_FECHA_ANIO NVARCHAR(10),
 
     -- Datos del cliente
     CR_CLIENTE_NOMBRE NVARCHAR(200),
@@ -681,6 +685,19 @@ BEGIN
     BEGIN
         ALTER TABLE SIST_ORDEN_COMPRA DROP COLUMN OC_USO_VEHICULO;
         PRINT '✅ Campo OC_USO_VEHICULO eliminado (ya no se usa).';
+    END
+
+    -- Campos de usuario creador (para notificaciones)
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_USUARIO_EMAIL')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_USUARIO_EMAIL NVARCHAR(255);
+        PRINT '✅ Campo OC_USUARIO_EMAIL agregado (para notificaciones al asesor).';
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SIST_ORDEN_COMPRA') AND name = 'OC_USUARIO_NOMBRE')
+    BEGIN
+        ALTER TABLE SIST_ORDEN_COMPRA ADD OC_USUARIO_NOMBRE NVARCHAR(255);
+        PRINT '✅ Campo OC_USUARIO_NOMBRE agregado (para notificaciones al asesor).';
     END
 
     PRINT '🔄 Verificación automática completada.';
