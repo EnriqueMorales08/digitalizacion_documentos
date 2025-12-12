@@ -1,0 +1,6 @@
+{
+    "require": {
+        "spatie/browsershot": "^3.61",
+        "setasign/fpdi": "^2.6"
+    }
+}

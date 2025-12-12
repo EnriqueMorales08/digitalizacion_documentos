@@ -330,6 +330,11 @@
             formData.append('orden_id', <?= $ordenId ?>);
             formData.append('accion', accion);
             formData.append('observaciones', observaciones);
+            
+            // Agregar token si existe (para acceso sin login)
+            <?php if (isset($_GET['token'])): ?>
+            formData.append('token', '<?= htmlspecialchars($_GET['token']) ?>');
+            <?php endif; ?>
 
             fetch('/digitalizacion-documentos/aprobacion/procesar', {
                 method: 'POST',

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <style>
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(242deg, #2d75e1 0%, #c3cfe2 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -100,6 +100,24 @@
       color: white;
       transform: translateY(-2px);
     }
+    .btn-audit {
+      margin-top: 20px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border: none;
+      color: white;
+      padding: 12px 30px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(245, 87, 108, 0.3);
+    }
+    .btn-audit:hover {
+      background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 87, 108, 0.5);
+    }
     .user-badge {
       display: inline-block;
       background: #f3f4f6;
@@ -143,6 +161,17 @@
       <a href="/digitalizacion-documentos/expedientes" class="btn btn-expedientes">
         <i class="bi bi-folder2-open"></i> Gestionar Expedientes
       </a>
+      
+      <?php 
+      $rol = $_SESSION['usuario_rol'] ?? 'USER';
+      $cargo = $_SESSION['usuario_cargo'] ?? '';
+      $esJefeTienda = (stripos($cargo, 'JEFE DE TIENDA') !== false);
+      if ($rol === 'ADMIN' || $esJefeTienda): 
+      ?>
+      <a href="/digitalizacion-documentos/audit" class="btn btn-audit">
+        <i class="bi bi-clipboard-data"></i> Reporte de Auditoría
+      </a>
+      <?php endif; ?>
     </div>
     
     <?php if (isset($_GET['success'])): ?>

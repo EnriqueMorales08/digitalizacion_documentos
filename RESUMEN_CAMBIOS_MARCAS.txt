@@ -1,0 +1,139 @@
+========================================
+RESUMEN DE CAMBIOS - SISTEMA DE MARCAS
+Fecha: 7 de Noviembre de 2025
+========================================
+
+✅ IMPLEMENTACIÓN COMPLETADA
+
+Se ha implementado exitosamente el sistema de control de acceso por marcas de vehículos.
+El sistema anterior (USER/ADMIN) sigue funcionando perfectamente.
+
+========================================
+ARCHIVOS MODIFICADOS
+========================================
+
+1. app/controllers/AuthController.php
+   - Agregada columna 'marca' en consulta SQL de login
+   - Guardado de marcas en sesión: $_SESSION['usuario_marcas']
+
+2. app/models/Document.php
+   - Nueva función: puedeEditar() - Verifica permisos de edición
+   - Modificada: getOrdenCompra() - Filtrado por marcas
+   - Modificada: buscarPorNumeroExpediente() - Filtrado por marcas
+   - Modificada: listarOrdenesCompra() - Filtrado por marcas
+
+3. app/controllers/DocumentController.php
+   - Agregada verificación de permisos en procesarOrdenCompra()
+   - Agregada verificación de permisos en guardarDocumento()
+
+4. app/controllers/AprobacionController.php
+   - Agregada verificación de permisos en procesar()
+
+========================================
+ARCHIVOS NUEVOS CREADOS
+========================================
+
+1. SISTEMA_MARCAS_IMPLEMENTADO.md
+   - Documentación completa del sistema
+   - Explicación de roles y permisos
+   - Ejemplos de uso y pruebas
+
+2. database/CONSULTAS_MARCAS.sql
+   - Consultas SQL útiles para gestionar marcas
+   - Scripts de configuración
+   - Reportes y estadísticas
+
+3. RESUMEN_CAMBIOS_MARCAS.txt
+   - Este archivo
+
+========================================
+CÓMO FUNCIONA
+========================================
+
+USUARIO ADMIN (sin marcas):
+→ Ve TODAS las órdenes
+→ Puede editar, aprobar y rechazar
+
+USUARIO USER (sin marcas) - Asesor:
+→ Ve solo SUS órdenes
+→ Puede crear y editar sus órdenes
+
+USUARIO USER (con marcas) - Jefe de Marca:
+→ Ve todas las órdenes de SUS marcas
+→ SOLO PUEDE VISUALIZAR (no editar, crear, aprobar ni rechazar)
+
+========================================
+CONFIGURACIÓN DE MARCAS
+========================================
+
+Para asignar marcas a un usuario:
+
+-- Una marca
+UPDATE firmas SET marca = 'FORD' WHERE usuario = 'jefe_ford'
+
+-- Múltiples marcas (separadas por comas)
+UPDATE firmas SET marca = 'FORD,SUBARU,TOYOTA' WHERE usuario = 'jefe_multi'
+
+-- Quitar marcas
+UPDATE firmas SET marca = NULL WHERE usuario = 'usuario'
+
+========================================
+PRUEBAS RECOMENDADAS
+========================================
+
+1. Usuario USER sin marcas:
+   ✓ Crear orden de compra
+   ✓ Ver solo sus órdenes
+   ✓ Editar sus órdenes
+
+2. Usuario USER con marca FORD:
+   ✓ Ver todas las órdenes de FORD
+   ✓ Intentar editar (debe fallar)
+   ✓ Intentar crear (debe fallar)
+   ✓ Intentar aprobar (debe fallar)
+
+3. Usuario ADMIN:
+   ✓ Ver todas las órdenes
+   ✓ Editar cualquier orden
+   ✓ Aprobar/rechazar cualquier orden
+
+========================================
+SEGURIDAD
+========================================
+
+✅ Filtros aplicados en consultas SQL
+✅ Verificación de permisos en controladores
+✅ Usuarios con marcas no pueden editar
+✅ Usuarios con marcas no pueden aprobar/rechazar
+✅ Compatible con sistema anterior
+
+========================================
+NOTAS IMPORTANTES
+========================================
+
+- Las marcas deben coincidir con OC_VEHICULO_MARCA
+- Las marcas son case-sensitive
+- Se usa LIKE para coincidencias parciales
+- Los usuarios con marcas pierden permisos de edición
+- El sistema anterior sigue funcionando igual
+
+========================================
+REVERSIÓN
+========================================
+
+Si necesitas revertir los cambios, usa git:
+
+git log --oneline
+git revert [commit_hash]
+
+O restaura manualmente los 4 archivos modificados.
+
+========================================
+SOPORTE
+========================================
+
+Para más información, consulta:
+- SISTEMA_MARCAS_IMPLEMENTADO.md (documentación completa)
+- database/CONSULTAS_MARCAS.sql (consultas útiles)
+
+========================================

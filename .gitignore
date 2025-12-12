@@ -1,0 +1,11 @@
+# Ignorar archivos subidos por usuarios
+uploads/*
+!uploads/.gitkeep
+
+# Ignorar archivos temporales
+*.tmp
+*.log
+
+# Ignorar configuraciones locales
+.env
+config/database_local.php

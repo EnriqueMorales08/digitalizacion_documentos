@@ -4,204 +4,313 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imprimir Expediente <?= htmlspecialchars($ordenCompra['OC_NUMERO_EXPEDIENTE'] ?? '') ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        body {
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Contenedor de carga (se oculta al imprimir) */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #667eea;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Contenedor de documentos */
+        #documentos-container {
+            display: none; /* Oculto hasta que cargue */
+        }
+        
+        #documentos-container.loaded {
+            display: block;
+        }
+        
+        /* Iframe para cada documento */
+        .documento-iframe {
+            width: 100%;
+            border: none;
+            margin: 0;
+            padding: 0;
+            display: block;
+            min-height: 1000px;
+            overflow: hidden;
+        }
+        
+        /* Separador entre documentos - salto de página */
+        .document-separator {
+            page-break-after: always;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            display: block;
+        }
+        
+        /* Estilos para impresión */
         @media print {
-            .no-print {
-                display: none !important;
-            }
-            .page-break {
-                page-break-after: always;
-            }
-            body {
-                background: white !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            .print-header {
-                display: none !important;
-            }
-            .documento-section {
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            .documento-section h2 {
-                display: none !important;
-            }
-            
-            /* Estilos específicos para cada documento */
-            
-            /* Orden de Compra */
-            input, select, textarea {
-                border: none !important;
-                background: transparent !important;
-                font-size: 8.5px !important;
-                padding: 1px !important;
-            }
-            
-            div[style*="margin"] {
-                margin: 2px auto !important;
-            }
-            
-            div[style*="padding"] {
-                padding: 2px !important;
-            }
-            
-            div[style*="height:70px"] {
-                height: 50px !important;
-            }
-            
-            div, span, p, li {
-                font-size: 7.5px !important;
-                line-height: 1.2 !important;
-            }
-            
-            textarea {
-                height: 30px !important;
-            }
-            
-            .header {
-                padding: 4px !important;
-            }
-            
-            .header-left img {
-                width: 150px !important;
-            }
-            
-            /* Cartas y documentos */
-            .page {
-                box-shadow: none !important;
-                padding: 15px !important;
-            }
-            
-            .header img {
-                height: 50px !important;
-            }
-            
-            .title, h2 {
-                font-size: 11pt !important;
-                margin: 10px 0 !important;
-            }
-            
-            .date-section {
-                margin-bottom: 15px !important;
-            }
-            
-            .content {
-                margin: 10px 0 !important;
-            }
-            
-            .signature-section, .firma-section {
-                margin-top: 15px !important;
-            }
-            
-            .firma-box {
-                height: 50px !important;
-            }
-            
-            ul, ol {
-                margin: 5px 0 !important;
-                padding-left: 15px !important;
-            }
-            
             @page {
                 size: A4;
-                margin: 10mm;
+                margin: 8mm 8mm 8mm 3mm;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .loading-overlay {
+                display: none !important;
+            }
+            
+            #documentos-container {
+                display: block !important;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .documento-iframe {
+                page-break-before: always;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+                display: block;
+                border: none;
+                margin: 0;
+                padding: 0;
+                width: 100% !important;
+            }
+            
+            /* El primer iframe no necesita salto antes */
+            .documento-iframe:first-child {
+                page-break-before: avoid !important;
+            }
+            
+            /* Asegurar que el último iframe no tenga salto de página después */
+            .documento-iframe:last-child {
+                page-break-after: avoid !important;
             }
         }
         
-        body {
-            background: white;
-            padding: 20px;
-        }
-        .print-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            border-bottom: 3px solid #667eea;
-        }
-        .documento-section {
-            margin-bottom: 50px;
+        @media screen {
+            #documentos-container {
+                max-width: 950px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .documento-iframe {
+                margin: 0 auto 20px auto;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="no-print text-center mb-4">
-        <button onclick="window.print()" class="btn btn-primary btn-lg">
-            <i class="bi bi-printer"></i> Imprimir Todos los Documentos
-        </button>
-        <button onclick="window.close()" class="btn btn-secondary btn-lg">
-            Cerrar
-        </button>
+    <!-- Overlay de carga -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Cargando documentos...</div>
     </div>
-
-    <div class="print-header">
-        <h1>Expediente: <?= htmlspecialchars($ordenCompra['OC_NUMERO_EXPEDIENTE'] ?? 'N/A') ?></h1>
-        <p class="mb-0">Cliente: <?= htmlspecialchars($ordenCompra['OC_COMPRADOR_NOMBRE'] ?? 'N/A') ?></p>
-        <p class="mb-0">Vehículo: <?= htmlspecialchars($ordenCompra['OC_VEHICULO_MARCA'] ?? '') ?> <?= htmlspecialchars($ordenCompra['OC_VEHICULO_MODELO'] ?? '') ?></p>
-    </div>
-
-    <?php
-    require_once __DIR__ . '/../../models/Document.php';
-    $docModel = new Document();
     
-    // Mapeo de documentos a sus vistas y tablas
-    $documentosConfig = [
-        'acta-conocimiento-conformidad' => ['vista' => 'acta-conocimiento-conformidad', 'tabla' => 'SIST_ACTA_CONOCIMIENTO_CONFORMIDAD', 'fk' => 'ACC_DOCUMENTO_VENTA_ID'],
-        'actorizacion-datos-personales' => ['vista' => 'actorizacion-datos-personales', 'tabla' => 'SIST_AUTORIZACION_DATOS_PERSONALES', 'fk' => 'ADP_DOCUMENTO_VENTA_ID'],
-        'carta_conocimiento_aceptacion' => ['vista' => 'carta_conocimiento_aceptacion', 'tabla' => 'SIST_CARTA_CONOCIMIENTO_ACEPTACION', 'fk' => 'CCA_DOCUMENTO_VENTA_ID'],
-        'carta_recepcion' => ['vista' => 'carta_recepcion', 'tabla' => 'SIST_CARTA_RECEPCION', 'fk' => 'CR_DOCUMENTO_VENTA_ID'],
-        'carta-caracteristicas' => ['vista' => 'carta-caracteristicas', 'tabla' => 'SIST_CARTA_CARACTERISTICAS', 'fk' => 'CC_DOCUMENTO_VENTA_ID'],
-        'carta_caracteristicas_banbif' => ['vista' => 'carta_caracteristicas_banbif', 'tabla' => 'SIST_CARTA_CARACTERISTICAS_BANBIF', 'fk' => 'CCB_DOCUMENTO_VENTA_ID'],
-        'carta_felicitaciones' => ['vista' => 'carta_felicitaciones', 'tabla' => 'SIST_CARTA_FELICITACIONES', 'fk' => 'CF_DOCUMENTO_VENTA_ID'],
-        'carta_obsequios' => ['vista' => 'carta_obsequios', 'tabla' => 'SIST_CARTA_OBSEQUIOS', 'fk' => 'CO_DOCUMENTO_VENTA_ID'],
-        'politica_proteccion_datos' => ['vista' => 'politica_proteccion_datos', 'tabla' => 'SIST_POLITICA_PROTECCION_DATOS', 'fk' => 'PPD_DOCUMENTO_VENTA_ID']
-    ];
+    <!-- Contenedor donde se cargarán todos los documentos en iframes -->
+    <div id="documentos-container"></div>
 
-    $ordenCompraData = $ordenCompra;
-    $id = $ordenCompra['OC_ID'];
-
-    // 1. Siempre incluir la orden de compra primero
-    echo '<div class="documento-section page-break">';
-    echo '<h2 class="text-center mb-4">Orden de Compra</h2>';
-    if (file_exists(__DIR__ . '/../documents/layouts/orden-compra.php')) {
-        include __DIR__ . '/../documents/layouts/orden-compra.php';
-    }
-    echo '</div>';
-
-    // 2. Incluir todos los demás documentos que existan en la BD
-    foreach ($documentosConfig as $documentoId => $config) {
-        // Verificar si el documento existe en la BD
-        $documentData = $docModel->getDocumentData($documentoId, $ordenCompra['OC_ID']);
+    <script>
+        <?php
+        require_once __DIR__ . '/../../models/Document.php';
+        $docModel = new Document();
         
-        if (!empty($documentData)) {
-            $vistaPath = __DIR__ . "/../documents/layouts/{$config['vista']}.php";
-            
-            if (file_exists($vistaPath)) {
-                echo '<div class="documento-section page-break">';
-                echo '<h2 class="text-center mb-4">' . htmlspecialchars(ucwords(str_replace(['_', '-'], ' ', $documentoId))) . '</h2>';
-                
-                // Cargar datos del vehículo si es necesario
-                if (in_array($documentoId, ['carta-caracteristicas', 'carta_caracteristicas_banbif'])) {
-                    $chasis = $ordenCompra['OC_VEHICULO_CHASIS'] ?? '';
-                    if ($chasis) {
-                        $vehiculoData = $docModel->buscarVehiculoPorChasis($chasis);
-                    }
-                }
-                
-                include $vistaPath;
-                echo '</div>';
+        // Obtener tipo de combustible del vehículo
+        $tipoCombustible = trim($ordenCompra['OC_VEHICULO_TIPO_COMBUSTIBLE'] ?? '');
+        
+        // Mapeo de documentos a sus vistas y tablas
+        $documentosConfig = [];
+        
+        // Solo agregar Acta de Conocimiento y Conformidad si el vehículo es GLP (tipo combustible = 'DU')
+        if ($tipoCombustible === 'DU') {
+            $documentosConfig['acta-conocimiento-conformidad'] = ['vista' => 'acta-conocimiento-conformidad', 'tabla' => 'SIST_ACTA_CONOCIMIENTO_CONFORMIDAD', 'fk' => 'ACC_DOCUMENTO_VENTA_ID'];
+        }
+        
+        // Agregar el resto de documentos
+        $documentosConfig['actorizacion-datos-personales'] = ['vista' => 'actorizacion-datos-personales', 'tabla' => 'SIST_AUTORIZACION_DATOS_PERSONALES', 'fk' => 'ADP_DOCUMENTO_VENTA_ID'];
+        $documentosConfig['carta_conocimiento_aceptacion'] = ['vista' => 'carta_conocimiento_aceptacion', 'tabla' => 'SIST_CARTA_CONOCIMIENTO_ACEPTACION', 'fk' => 'CCA_DOCUMENTO_VENTA_ID'];
+        $documentosConfig['carta_recepcion'] = ['vista' => 'carta_recepcion', 'tabla' => 'SIST_CARTA_RECEPCION', 'fk' => 'CR_DOCUMENTO_VENTA_ID'];
+        $documentosConfig['carta-caracteristicas'] = ['vista' => 'carta-caracteristicas', 'tabla' => 'SIST_CARTA_CARACTERISTICAS', 'fk' => 'CC_DOCUMENTO_VENTA_ID'];
+        $documentosConfig['carta_caracteristicas_banbif'] = ['vista' => 'carta_caracteristicas_banbif', 'tabla' => 'SIST_CARTA_CARACTERISTICAS_BANBIF', 'fk' => 'CCB_DOCUMENTO_VENTA_ID'];
+        $documentosConfig['carta_felicitaciones'] = ['vista' => 'carta_felicitaciones', 'tabla' => 'SIST_CARTA_FELICITACIONES', 'fk' => 'CF_DOCUMENTO_VENTA_ID'];
+        $documentosConfig['carta_obsequios'] = ['vista' => 'carta_obsequios', 'tabla' => 'SIST_CARTA_OBSEQUIOS', 'fk' => 'CO_DOCUMENTO_VENTA_ID'];
+        $documentosConfig['politica_proteccion_datos'] = ['vista' => 'politica_proteccion_datos', 'tabla' => 'SIST_POLITICA_PROTECCION_DATOS', 'fk' => 'PPD_DOCUMENTO_VENTA_ID'];
+        
+        $numeroExpediente = $ordenCompra['OC_NUMERO_EXPEDIENTE'] ?? '';
+        
+        // Construir array de documentos a imprimir
+        $documentosAImprimir = ['orden-compra'];
+        
+        foreach ($documentosConfig as $documentoId => $config) {
+            $documentData = $docModel->getDocumentData($documentoId, $id);
+            if (!empty($documentData)) {
+                $documentosAImprimir[] = $documentoId;
             }
         }
-    }
-    ?>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Auto-imprimir al cargar
+        ?>
+        const numeroExpediente = '<?= htmlspecialchars($numeroExpediente) ?>';
+        const documentos = <?= json_encode($documentosAImprimir) ?>;
+        const clienteFlag = <?= (isset($esVistaCliente) && $esVistaCliente) ? "'&cliente=1'" : "''" ?>;
+        const container = document.getElementById('documentos-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        
+        let documentosCargados = 0;
+        let iframes = [];
+        
+        // Cargar todos los documentos mediante iframes
+        function cargarDocumentos() {
+            console.log('📄 Cargando', documentos.length, 'documentos en iframes...');
+            
+            documentos.forEach((doc, index) => {
+                const url = `/digitalizacion-documentos/expedientes/imprimir-documento?numero=${encodeURIComponent(numeroExpediente)}&documento=${encodeURIComponent(doc)}${clienteFlag}`;
+                
+                loadingText.textContent = `Cargando documento ${index + 1}/${documentos.length}: ${doc}...`;
+                console.log(`📄 Creando iframe ${index + 1}/${documentos.length}: ${doc}`);
+                
+                // Crear iframe para este documento
+                const iframe = document.createElement('iframe');
+                iframe.className = 'documento-iframe';
+                iframe.setAttribute('data-documento', doc);
+                iframe.setAttribute('scrolling', 'no');
+                iframe.src = url;
+                
+                // Evento cuando el iframe carga completamente
+                iframe.onload = function() {
+                    console.log(`📄 Iframe cargado para: ${doc}`);
+                    
+                    // Ajustar altura del iframe e inyectar CSS para impresión
+                    setTimeout(() => {
+                        try {
+                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            
+                            // Inyectar CSS para reducir y centrar el contenido en impresión
+                            const style = iframeDoc.createElement('style');
+                            style.textContent = `
+                                @media print {
+                                    html, body {
+                                        width: 100% !important;
+                                        margin: 0 !important;
+                                        padding: 0 !important;
+                                        overflow: visible !important;
+                                    }
+                                    
+                                    body {
+                                        transform: scale(0.85);
+                                        transform-origin: top left;
+                                        /* Compensar el escalado para centrar: (100% - 80%) / 2 = 10% */
+                                        margin-left: 7.5% !important;
+                                        margin-right: 7.5% !important;
+                                    }
+                                    
+                                    .page {
+                                        margin: 0 auto !important;
+                                    }
+                                }
+                            `;
+                            iframeDoc.head.appendChild(style);
+                            console.log(`🎨 CSS de impresión inyectado en ${doc}`);
+                            
+                            const height = Math.max(
+                                iframeDoc.body.scrollHeight,
+                                iframeDoc.body.offsetHeight,
+                                iframeDoc.documentElement.scrollHeight,
+                                iframeDoc.documentElement.offsetHeight
+                            );
+                            iframe.style.height = (height + 150) + 'px';
+                            console.log(`📏 Altura ajustada para ${doc}: ${height + 150}px`);
+                        } catch (e) {
+                            console.warn('No se pudo ajustar altura:', e);
+                        }
+                        
+                        documentosCargados++;
+                        console.log(`✅ Documento ${documentosCargados}/${documentos.length} completado: ${doc}`);
+                        
+                        if (documentosCargados === documentos.length) {
+                            todosDocumentosCargados();
+                        }
+                    }, 1500);
+                };
+                
+                // Manejo de errores
+                iframe.onerror = function() {
+                    console.error('❌ Error al cargar documento:', doc);
+                    documentosCargados++;
+                    
+                    if (documentosCargados === documentos.length) {
+                        todosDocumentosCargados();
+                    }
+                };
+                
+                // Agregar iframe al contenedor
+                container.appendChild(iframe);
+                iframes.push(iframe);
+            });
+        }
+        
+        function todosDocumentosCargados() {
+            console.log('✅ Todos los documentos cargados. Preparando impresión...');
+            loadingText.textContent = 'Todos los documentos listos. Preparando impresión...';
+            
+            // Esperar un momento adicional para asegurar rendering completo
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+                container.classList.add('loaded');
+                
+                // Solo imprimir automáticamente si NO estamos en un iframe
+                // (cuando se carga en iframe, la función JavaScript padre se encarga de imprimir)
+                if (window.self === window.top) {
+                    // Esperar antes de imprimir
+                    setTimeout(() => {
+                        console.log('🖨️ Abriendo diálogo de impresión...');
+                        window.print();
+                    }, 2000);
+                } else {
+                    console.log('📄 Documentos cargados en iframe, esperando llamada a print() desde padre...');
+                }
+            }, 1000);
+        }
+        
+        // Iniciar carga cuando la página esté lista
         window.onload = function() {
             setTimeout(() => {
-                window.print();
+                cargarDocumentos();
             }, 500);
         };
     </script>

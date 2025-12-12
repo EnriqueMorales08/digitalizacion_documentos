@@ -16,7 +16,7 @@
             background-color: var(--bg);
             margin: 0;
             padding: 20px;
-            line-height: 1.4;
+            line-height: 1.1;
             color: #333;
         }
 
@@ -31,12 +31,26 @@
         }
 
         @media print {
+            @page { 
+                margin: 0; 
+                size: auto;
+            }
             body {
                 background: #fff;
+                margin: 0;
+                padding: 10mm;
+            }
+            html {
+                margin: 0;
+                padding: 0;
             }
 
             .page {
                 box-shadow: none;
+            }
+
+            .no-print {
+                display: none !important;
             }
         }
         
@@ -62,7 +76,7 @@
         
         .title {
             text-align: center;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
             margin: 30px 0;
             text-transform: uppercase;
@@ -71,7 +85,7 @@
         .date {
             text-align: right;
             margin-bottom: 30px;
-            font-size: 14px;
+            font-size: 13.5px;
         }
         
         .recipient {
@@ -80,7 +94,7 @@
         
         .recipient h3 {
             margin: 0 0 5px 0;
-            font-size: 16px;
+            font-size: 15px;
         }
         
         .content {
@@ -204,7 +218,7 @@
         <p><strong>Estimados Señores:</strong></p>
 
         <p>Mediante la presente, les informamos que nuestro mutuo cliente
-        <strong><input type="text" name="CC_CLIENTE_NOMBRE" value="<?php echo htmlspecialchars($documentData['CC_CLIENTE_NOMBRE'] ?? $ordenCompraData['OC_COMPRADOR_NOMBRE'] ?? ''); ?>" style="width: 350px;"></strong>
+        <strong><input type="text" name="CC_CLIENTE_NOMBRE" value="<?php echo htmlspecialchars($documentData['CC_CLIENTE_NOMBRE'] ?? (trim(($ordenCompraData['OC_COMPRADOR_NOMBRE'] ?? '') . ' ' . ($ordenCompraData['OC_COMPRADOR_APELLIDO'] ?? ''))) ?? ''); ?>" style="width: 350px;"></strong>
         con <strong>DNI. <input type="text" name="CC_CLIENTE_DNI" value="<?php echo htmlspecialchars($documentData['CC_CLIENTE_DNI'] ?? $ordenCompraData['OC_COMPRADOR_NUMERO_DOCUMENTO'] ?? ''); ?>" style="width: 100px;"></strong>
         ha obtenido el crédito vehicular por la siguiente unidad:</p>
     </div>
@@ -244,11 +258,11 @@
         <h4>Valores:</h4>
         <div class="detail-row">
             <div class="detail-label">Precio del vehículo</div>
-            <div class="detail-value">: <input type="text" name="CC_PRECIO_VEHICULO" value="<?php echo htmlspecialchars(($documentData['CC_PRECIO_VEHICULO'] ?? ($ordenCompraData['OC_MONEDA_PRECIO_VENTA'] ?? '') . ' ' . ($ordenCompraData['OC_PRECIO_VENTA'] ?? ''))); ?>" style="width: 150px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_PRECIO_VEHICULO" value="<?php echo htmlspecialchars($documentData['CC_PRECIO_VEHICULO'] ?? trim(($ordenCompraData['OC_MONEDA_PRECIO_VENTA'] ?? '') . ' ' . ($ordenCompraData['OC_PRECIO_VENTA'] ?? ''))); ?>" style="width: 150px;"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Cuota inicial</div>
-            <div class="detail-value">: <input type="text" name="CC_CUOTA_INICIAL" style="width: 150px;"></div>
+            <div class="detail-value">: <input type="text" name="CC_CUOTA_INICIAL" value="<?php echo htmlspecialchars($documentData['CC_CUOTA_INICIAL'] ?? trim(($ordenCompraData['OC_MONEDA_CUOTA_INICIAL'] ?? '') . ' ' . ($ordenCompraData['OC_CUOTA_INICIAL'] ?? ''))); ?>" style="width: 150px;"></div>
         </div>
         <div class="detail-row">
             <div class="detail-label">Monto Aprobado Neto</div>
@@ -262,7 +276,7 @@
 
     <div class="commitment">
         Nos comprometemos a gestionar la tarjeta de Propiedad del vehículo a nombre de:
-        <strong><input type="text" name="CC_PROPIETARIO_TARJETA" value="<?php echo htmlspecialchars($documentData['CC_PROPIETARIO_TARJETA'] ?? $ordenCompraData['OC_PROPIETARIO_NOMBRE'] ?? ''); ?>" style="width: 350px;"></strong>
+        <strong><input type="text" name="CC_PROPIETARIO_TARJETA" value="<?php echo htmlspecialchars($documentData['CC_PROPIETARIO_TARJETA'] ?? $ordenCompraData['OC_TARJETA_NOMBRE'] ?? ''); ?>" style="width: 350px;"></strong>
     </div>
 
     <div class="content">
@@ -277,13 +291,85 @@
     </div>
 
     <!-- Botón de guardar -->
+    <?php if (!isset($modoImpresion) || !$modoImpresion): ?>
     <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" class="no-print">
         <input type="hidden" name="document_type" value="carta-caracteristicas">
         <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5); transition: all 0.3s ease;">
-            💾 GUARDAR
+            💾 <?php echo (isset($modoEdicion) && $modoEdicion) ? 'ACTUALIZAR' : 'GUARDAR'; ?>
         </button>
     </div>
+    <?php endif; ?>
+    <?php if (isset($modoImpresion) && $modoImpresion): ?>
+    <div style="position: fixed; top: 80px; right: 20px; z-index: 1000;" class="no-print">
+      <a href="/digitalizacion-documentos/documents/show?id=carta-caracteristicas&orden_id=<?php echo $_SESSION['orden_id'] ?? ''; ?>" 
+         style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; text-decoration: none; border-radius: 25px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; transition: all 0.3s ease;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ✏️ EDITAR
+      </a>
+    </div>
+    <?php endif; ?>
+    <script>
+    <?php if (isset($modoImpresion) && $modoImpresion): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+      const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea');
+      inputs.forEach(el => { el.setAttribute('readonly', 'readonly'); el.setAttribute('disabled', 'disabled'); el.style.cursor = 'default'; el.style.pointerEvents = 'none'; });
+    });
+    <?php endif; ?>
+    </script>
 
     </form>
+
+    <!-- Preview desde localStorage -->
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const esPreview = urlParams.get('preview') === '1';
+      const tieneOrdenId = urlParams.get('orden_id') !== null;
+      
+      if (esPreview && !tieneOrdenId) {
+          console.log('👁️ Modo PREVIEW - Carta Características');
+          const datosStr = localStorage.getItem('preview_orden_compra');
+          
+          if (datosStr) {
+              try {
+                  const datos = JSON.parse(datosStr);
+                  console.log('📦 Datos cargados:', datos);
+                  
+                  const nombreCompleto = (datos.comprador_nombre + ' ' + datos.comprador_apellido).trim();
+                  
+                  document.querySelector('[name="CC_CLIENTE_NOMBRE"]').value = nombreCompleto;
+                  document.querySelector('[name="CC_CLIENTE_DNI"]').value = datos.comprador_numero_doc || '';
+                  document.querySelector('[name="CC_VEHICULO_MARCA"]').value = datos.vehiculo_marca || '';
+                  document.querySelector('[name="CC_VEHICULO_MODELO"]').value = datos.vehiculo_modelo || '';
+                  document.querySelector('[name="CC_VEHICULO_ANIO_MODELO"]').value = datos.vehiculo_anio || '';
+                  document.querySelector('[name="CC_VEHICULO_CHASIS"]').value = datos.vehiculo_chasis || '';
+                  document.querySelector('[name="CC_VEHICULO_MOTOR"]').value = datos.vehiculo_motor || '';
+                  document.querySelector('[name="CC_VEHICULO_COLOR"]').value = datos.vehiculo_color || '';
+                  
+                  // Precio del vehículo y cuota inicial desde la OC en tiempo real (solo monto, sin moneda)
+                  if (datos.precio_venta) {
+                      const campoPrecio = document.querySelector('[name="CC_PRECIO_VEHICULO"]');
+                      if (campoPrecio && !campoPrecio.value) {
+                          campoPrecio.value = (datos.precio_venta || '').toString().trim();
+                      }
+                  }
+
+                  if (datos.cuota_inicial) {
+                      const campoCuota = document.querySelector('[name="CC_CUOTA_INICIAL"]');
+                      if (campoCuota && !campoCuota.value) {
+                          campoCuota.value = (datos.cuota_inicial || '').toString().trim();
+                      }
+                  }
+                  
+                  if (datos.banco_abono) {
+                      document.querySelector('[name="CC_EMPRESA_DESTINO"]').value = datos.banco_abono;
+                  }
+                  
+                  console.log('✅ Preview cargado - Carta Características');
+              } catch (e) {
+                  console.error('❌ Error:', e);
+              }
+          }
+      }
+    </script>
 </body>
 </html>

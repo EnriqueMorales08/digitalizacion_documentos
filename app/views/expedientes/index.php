@@ -66,10 +66,13 @@
                     <h1 class="mb-2"><i class="bi bi-folder2-open"></i> Gestión de Expedientes</h1>
                     <p class="text-muted mb-0">Buscar, visualizar e imprimir documentos por número de expediente</p>
                 </div>
-                <div>
+                <div class="d-flex gap-2">
                     <a href="/digitalizacion-documentos/documents" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left"></i> Volver al Inicio
                     </a>
+                    <button onclick="nuevaOrdenCompra()" class="btn btn-primary" style="background: linear-gradient(135deg, #3b82f6, #1e3a8a); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                        <i class="bi bi-file-earmark-plus"></i> Nueva Orden de Compra
+                    </button>
                 </div>
             </div>
         </div>
@@ -167,10 +170,10 @@
                                     <i class="bi bi-eye"></i> Ver Documentos
                                 </a>
                                 <?php if ($estado === 'APROBADO'): ?>
-                                    <a href="/digitalizacion-documentos/expedientes/imprimir-todos?numero=<?= urlencode($orden['OC_NUMERO_EXPEDIENTE']) ?>" 
-                                       class="btn btn-success btn-action" target="_blank">
+                                    <button onclick="imprimirTodos('<?= urlencode($orden['OC_NUMERO_EXPEDIENTE']) ?>')" 
+                                       class="btn btn-success btn-action">
                                         <i class="bi bi-printer"></i> Imprimir Todo
-                                    </a>
+                                    </button>
                                 <?php else: ?>
                                     <button class="btn btn-secondary btn-action" disabled 
                                             title="Solo se puede imprimir cuando esté APROBADO">
@@ -203,5 +206,273 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función para mostrar indicador de carga
+        function mostrarCargando(mensaje = 'Preparando documentos para imprimir...') {
+            const overlay = document.createElement('div');
+            overlay.id = 'loading-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                backdrop-filter: blur(5px);
+            `;
+            
+            overlay.innerHTML = `
+                <div style="background: white; padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 400px;">
+                    <div style="margin-bottom: 20px;">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                    <h5 style="color: #333; margin-bottom: 10px;">
+                        <i class="bi bi-printer"></i> Preparando impresión
+                    </h5>
+                    <p style="color: #666; margin: 0;" id="loading-message">${mensaje}</p>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+        
+        // Función para ocultar indicador de carga
+        function ocultarCargando() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.3s';
+                setTimeout(() => {
+                    if (overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                }, 300);
+            }
+        }
+        
+        function imprimirTodos(numeroExpediente) {
+            // Mostrar indicador de carga
+            const loading = mostrarCargando('Cargando todos los documentos del expediente...');
+            // Crear iframe oculto para cargar los documentos
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = 'none';
+            
+            document.body.appendChild(iframe);
+            
+            // Cargar la página de imprimir todos en el iframe
+            iframe.src = '/digitalizacion-documentos/expedientes/imprimir-todos?numero=' + decodeURIComponent(numeroExpediente);
+            
+            // Esperar a que cargue y luego imprimir
+            iframe.onload = function() {
+                setTimeout(() => {
+                    try {
+                        // Ocultar indicador de carga antes de mostrar diálogo de impresión
+                        ocultarCargando();
+                        
+                        // Pequeña pausa para que se vea la transición
+                        setTimeout(() => {
+                            iframe.contentWindow.print();
+                        }, 300);
+                        
+                        // Limpiar iframe después de cerrar el diálogo de impresión
+                        setTimeout(() => {
+                            if (document.body.contains(iframe)) {
+                                document.body.removeChild(iframe);
+                            }
+                        }, 2000);
+                    } catch (e) {
+                        console.error('Error al imprimir:', e);
+                        ocultarCargando();
+                        // Si falla, abrir en nueva ventana como fallback
+                        window.open('/digitalizacion-documentos/expedientes/imprimir-todos?numero=' + decodeURIComponent(numeroExpediente), '_blank');
+                        document.body.removeChild(iframe);
+                    }
+                }, 6000); // Esperar 6 segundos para que carguen todos los documentos
+            };
+        }
+
+        // Función para crear nueva orden de compra
+        function nuevaOrdenCompra() {
+            if (confirm('¿Deseas crear una nueva orden de compra? Se abrirá un formulario en blanco.')) {
+                // Limpiar sesión en el servidor
+                fetch('/digitalizacion-documentos/documents/limpiar-sesion', {
+                    method: 'POST'
+                })
+                .then(() => {
+                    // Redirigir a orden de compra nueva
+                    window.location.href = '/digitalizacion-documentos/documents/show?id=orden-compra';
+                })
+                .catch(error => {
+                    console.error('Error al limpiar sesión:', error);
+                    // Redirigir de todas formas
+                    window.location.href = '/digitalizacion-documentos/documents/show?id=orden-compra';
+                });
+            }
+        }
+
+        // Sistema de actualización automática de estados
+        let estadosOriginales = {};
+        
+        // Función para obtener todas las órdenes visibles y sus estados actuales
+        function obtenerOrdenesVisibles() {
+            const ordenes = [];
+            document.querySelectorAll('.expediente-card').forEach(card => {
+                const badge = card.querySelector('.badge');
+                if (badge) {
+                    const estadoActual = badge.textContent.trim().replace(/[✓✗⏳]/g, '').trim();
+                    // Extraer el ID de la orden del botón "Ver Documentos"
+                    const verBtn = card.querySelector('a[href*="expedientes/ver"]');
+                    if (verBtn) {
+                        const href = verBtn.getAttribute('href');
+                        const numeroExpediente = new URLSearchParams(href.split('?')[1]).get('numero');
+                        if (numeroExpediente) {
+                            ordenes.push({
+                                numeroExpediente: numeroExpediente,
+                                estadoActual: estadoActual,
+                                badge: badge,
+                                card: card
+                            });
+                            // Guardar estado original si no existe
+                            if (!estadosOriginales[numeroExpediente]) {
+                                estadosOriginales[numeroExpediente] = estadoActual;
+                            }
+                        }
+                    }
+                }
+            });
+            return ordenes;
+        }
+
+        // Función para actualizar el estado de una orden en la interfaz
+        function actualizarEstadoOrden(orden, nuevoEstado) {
+            const badge = orden.badge;
+            const card = orden.card;
+            
+            // Actualizar badge
+            let badgeClass, icono;
+            if (nuevoEstado === 'APROBADO') {
+                badgeClass = 'bg-success';
+                icono = 'check-circle';
+            } else if (nuevoEstado === 'RECHAZADO') {
+                badgeClass = 'bg-danger';
+                icono = 'x-circle';
+            } else {
+                badgeClass = 'bg-warning text-dark';
+                icono = 'clock';
+            }
+            
+            badge.className = 'badge ' + badgeClass + ' mt-2';
+            badge.innerHTML = '<i class="bi bi-' + icono + '"></i> ' + nuevoEstado;
+            
+            // Actualizar botón de imprimir
+            const imprimirBtn = card.querySelector('button[onclick*="imprimirTodos"]');
+            if (imprimirBtn) {
+                if (nuevoEstado === 'APROBADO') {
+                    imprimirBtn.disabled = false;
+                    imprimirBtn.className = 'btn btn-success btn-action';
+                    imprimirBtn.title = '';
+                } else {
+                    imprimirBtn.disabled = true;
+                    imprimirBtn.className = 'btn btn-secondary btn-action';
+                    imprimirBtn.title = 'Solo se puede imprimir cuando esté APROBADO';
+                }
+            }
+            
+            // Animación de actualización
+            card.style.transition = 'all 0.3s ease';
+            card.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                card.style.backgroundColor = 'white';
+            }, 2000);
+            
+            // Mostrar notificación
+            mostrarNotificacion('Estado actualizado: ' + orden.numeroExpediente + ' ahora está ' + nuevoEstado, 'success');
+        }
+
+        // Función para mostrar notificaciones
+        function mostrarNotificacion(mensaje, tipo = 'info') {
+            const notif = document.createElement('div');
+            notif.className = 'alert alert-' + tipo + ' alert-dismissible fade show';
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                min-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            notif.innerHTML = `
+                <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'info-circle'}"></i> ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notif);
+            
+            // Auto-cerrar después de 5 segundos
+            setTimeout(() => {
+                if (notif.parentNode) {
+                    notif.classList.remove('show');
+                    setTimeout(() => {
+                        if (notif.parentNode) {
+                            notif.parentNode.removeChild(notif);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Función para verificar estados de todas las órdenes pendientes
+        async function verificarEstados() {
+            const ordenes = obtenerOrdenesVisibles();
+            const ordenesPendientes = ordenes.filter(o => o.estadoActual === 'PENDIENTE');
+            
+            if (ordenesPendientes.length === 0) {
+                return; // No hay órdenes pendientes, no hacer nada
+            }
+            
+            // Verificar cada orden pendiente
+            for (const orden of ordenesPendientes) {
+                try {
+                    // Buscar el ID de la orden desde el número de expediente
+                    // Necesitamos hacer una llamada para obtener el ID
+                    const response = await fetch('/digitalizacion-documentos/expedientes/buscar?numero=' + encodeURIComponent(orden.numeroExpediente));
+                    const data = await response.json();
+                    
+                    if (data.success && data.orden && data.orden.OC_ID) {
+                        const ordenId = data.orden.OC_ID;
+                        
+                        // Verificar el estado actual
+                        const estadoResponse = await fetch('/digitalizacion-documentos/aprobacion/verificar-estado?id=' + ordenId);
+                        const estadoData = await estadoResponse.json();
+                        
+                        if (estadoData.success && estadoData.estado !== orden.estadoActual) {
+                            // El estado cambió, actualizar la interfaz
+                            actualizarEstadoOrden(orden, estadoData.estado);
+                            estadosOriginales[orden.numeroExpediente] = estadoData.estado;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al verificar estado de orden:', error);
+                }
+            }
+        }
+
+        // Iniciar polling cada 5 segundos
+        setInterval(verificarEstados, 5000);
+        
+        // Verificar inmediatamente al cargar la página
+        setTimeout(verificarEstados, 1000);
+    </script>
 </body>
 </html>

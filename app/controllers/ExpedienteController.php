@@ -45,6 +45,9 @@ class ExpedienteController {
 
         $ordenId = $ordenCompra['OC_ID'];
         
+        // Obtener número de expediente (necesario para JavaScript)
+        $numeroExpediente = $ordenCompra['OC_NUMERO_EXPEDIENTE'];
+        
         // Guardar en sesión para uso posterior
         $_SESSION['orden_id'] = $ordenId;
         
@@ -73,17 +76,28 @@ class ExpedienteController {
             exit;
         }
 
-        // VERIFICAR ESTADO DE APROBACIÓN
-        $estadoAprobacion = $ordenCompra['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
-        if ($estadoAprobacion !== 'APROBADO') {
-            $mensaje = $estadoAprobacion === 'RECHAZADO' 
-                ? 'No se puede imprimir. La orden fue RECHAZADA.' 
-                : 'No se puede imprimir. La orden está PENDIENTE de aprobación.';
-            header("Location: /digitalizacion-documentos/expedientes?error=" . urlencode($mensaje));
-            exit;
-        }
-
         $ordenId = $ordenCompra['OC_ID'];
+        
+        // Configurar variables de sesión necesarias para orden-compra.php
+        $_SESSION['orden_id'] = $ordenId;
+        $_SESSION['forma_pago'] = $ordenCompra['OC_FORMA_PAGO'] ?? '';
+        $_SESSION['banco_abono'] = $ordenCompra['OC_BANCO_ABONO'] ?? '';
+        
+        // FLAG para indicar que es modo impresión
+        $modoImpresion = true;
+        
+        // Convertir fechas DateTime a string para que funcionen en inputs type="date"
+        if (isset($ordenCompra['OC_FECHA_ORDEN']) && $ordenCompra['OC_FECHA_ORDEN'] instanceof DateTime) {
+            $ordenCompra['OC_FECHA_ORDEN'] = $ordenCompra['OC_FECHA_ORDEN']->format('Y-m-d');
+        }
+        if (isset($ordenCompra['OC_FECHA_NACIMIENTO']) && $ordenCompra['OC_FECHA_NACIMIENTO'] instanceof DateTime) {
+            $ordenCompra['OC_FECHA_NACIMIENTO'] = $ordenCompra['OC_FECHA_NACIMIENTO']->format('Y-m-d');
+        }
+        
+        // Preparar datos para las vistas
+        $ordenCompraData = $ordenCompra;
+        $id = $ordenId;
+        $documentModel = $this->documentModel;
         
         // Obtener todos los documentos asociados
         $documentos = $this->documentModel->getDocumentosPorOrden($ordenId);
@@ -109,6 +123,8 @@ class ExpedienteController {
 
         $numeroExpediente = trim($_GET['numero']);
         $documentoId = trim($_GET['documento']);
+        // Flag opcional para indicar que esta impresión es para el cliente
+        $esVistaCliente = isset($_GET['cliente']) && $_GET['cliente'] === '1';
         
         // Buscar la orden de compra
         $ordenCompra = $this->documentModel->buscarPorNumeroExpediente($numeroExpediente);
@@ -118,20 +134,28 @@ class ExpedienteController {
             exit;
         }
 
-        // VERIFICAR ESTADO DE APROBACIÓN
-        $estadoAprobacion = $ordenCompra['OC_ESTADO_APROBACION'] ?? 'PENDIENTE';
-        if ($estadoAprobacion !== 'APROBADO') {
-            $mensaje = $estadoAprobacion === 'RECHAZADO' 
-                ? 'No se puede imprimir. La orden fue RECHAZADA.' 
-                : 'No se puede imprimir. La orden está PENDIENTE de aprobación.';
-            header("Location: /digitalizacion-documentos/expedientes?error=" . urlencode($mensaje));
-            exit;
-        }
-
         $ordenId = $ordenCompra['OC_ID'];
+        
+        // Configurar variables de sesión necesarias para orden-compra.php
+        $_SESSION['orden_id'] = $ordenId;
+        $_SESSION['forma_pago'] = $ordenCompra['OC_FORMA_PAGO'] ?? '';
+        $_SESSION['banco_abono'] = $ordenCompra['OC_BANCO_ABONO'] ?? '';
+        
+        // FLAG para indicar que es modo impresión
+        $modoImpresion = true;
         
         // Preparar datos para la vista
         $ordenCompraData = $ordenCompra;
+        $documentModel = $this->documentModel;
+        
+        // Convertir fechas DateTime a string para que funcionen en inputs type="date"
+        if (isset($ordenCompraData['OC_FECHA_ORDEN']) && $ordenCompraData['OC_FECHA_ORDEN'] instanceof DateTime) {
+            $ordenCompraData['OC_FECHA_ORDEN'] = $ordenCompraData['OC_FECHA_ORDEN']->format('Y-m-d');
+        }
+        if (isset($ordenCompraData['OC_FECHA_NACIMIENTO']) && $ordenCompraData['OC_FECHA_NACIMIENTO'] instanceof DateTime) {
+            $ordenCompraData['OC_FECHA_NACIMIENTO'] = $ordenCompraData['OC_FECHA_NACIMIENTO']->format('Y-m-d');
+        }
+        
         $id = $ordenId;
         
         // Cargar datos del documento específico

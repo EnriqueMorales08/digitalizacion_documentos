@@ -1,0 +1,22 @@
+-- =====================================================
+-- TABLA: SIST_POLITICA_PROTECCION_DATOS
+-- =====================================================
+
+CREATE TABLE SIST_POLITICA_PROTECCION_DATOS (
+    PPD_ID INT IDENTITY(1,1) PRIMARY KEY,
+    PPD_FECHA_CREACION DATETIME DEFAULT GETDATE(),
+    PPD_DOCUMENTO_VENTA_ID INT,
+
+    -- Datos del cliente
+    PPD_CLIENTE_NOMBRE NVARCHAR(200),
+    PPD_CLIENTE_DNI NVARCHAR(50),
+    PPD_FECHA_AUTORIZACION DATE,
+
+    -- Firma
+    PPD_FIRMA_CLIENTE NVARCHAR(500),
+
+    FOREIGN KEY (PPD_DOCUMENTO_VENTA_ID) REFERENCES SIST_ORDEN_COMPRA(OC_ID)
+);
+
+-- Mensaje de confirmación
+PRINT '✅ Tabla SIST_POLITICA_PROTECCION_DATOS creada exitosamente';
